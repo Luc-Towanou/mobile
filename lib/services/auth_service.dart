@@ -1,0 +1,184 @@
+import 'dart:convert';
+import 'package:event_rush_mobile/auth/login_page.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:http/http.dart' as http;
+
+class AuthService {
+  final String baseUrl = 'https://eventrush.onrender.com/api'; // si tu utilises l'émulateur Android
+  // sur un vrai appareil, mets l'IP locale de ton PC, ex: 192.168.1.100:8000
+
+  Future<Map<String, dynamic>> login(String email, String password) async {
+    final url = Uri.parse('$baseUrl/auth/login');
+    final response = await http.post(
+      url,
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json", 
+      },
+      body: jsonEncode({"email": email, "password": password}),
+    );
+
+    if (response.statusCode == 200) {
+      // await storage.write(key: "token", value: data["access_token"]);
+      // await storage.write(key: "role", value: data["role"]); // si besoin
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Erreur : ${response.statusCode} => ${response.body}');
+    }
+  }
+  
+  Future<Map<String, dynamic>> loginScanners(String nom, String password) async {
+    final url = Uri.parse('$baseUrl/auth/login/scanneurs');
+    final response = await http.post(
+      url,
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json", 
+      },
+      body: jsonEncode({"nom": nom, "password": password}),
+    );
+
+    if (response.statusCode == 200) {
+      // await storage.write(key: "token", value: data["access_token"]);
+      // await storage.write(key: "role", value: data["role"]); // si besoin
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Erreur : ${response.statusCode} => ${response.body}');
+    }
+  }
+
+  
+  Future<Map<String, dynamic>> getScannerProfile(String token) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/me'),
+      headers: {'Authorization': 'Bearer $token'},
+    );
+    return jsonDecode(response.body);
+  }
+
+  Future<List<dynamic>> getScannerEvents(String token) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/scanneur/event'),
+      headers: {'Authorization': 'Bearer $token'},
+    );
+
+    final decoded = jsonDecode(response.body);
+
+    // Si l'API renvoie un objet avec "data"
+    if (decoded is Map && decoded.containsKey('data')) {
+      return List<dynamic>.from(decoded['data']);
+    }
+
+    // Sinon si l'API renvoie déjà une Map avec des index numériques, on convertit en liste
+    if (decoded is Map) {
+      return decoded.values.toList();
+    }
+
+    // Si c'est déjà une liste
+    if (decoded is List) return decoded;
+
+    throw Exception("Format inattendu pour les événements");
+  }
+  static const _storage = FlutterSecureStorage();
+
+  static Future<String?> getToken() async {
+    return await _storage.read(key: 'token');
+  }
+
+  static Future<void> saveToken(String token) async {
+    await _storage.write(key: 'token', value: token);
+  }
+
+  // static Future<void> logout() async {
+  //   await _storage.delete(key: 'token');
+  // }
+
+  // static final _storage = FlutterSecureStorage();
+
+  static Future<void> logout(BuildContext context) async {
+    await _storage.delete(key: 'token');
+    await _storage.delete(key: 'user');
+
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (_) => LoginPage()),
+      (route) => false,
+    );
+  }
+  static const String base = "https://eventrush.onrender.com/api";
+
+  //  static Future<Map<String, dynamic>> register({
+  //   required String nom,
+  //   required String email,
+  //   required String password,
+  //   required String passwordConfirmation,
+  // }) async {
+  //   final response = await http.post(
+  //     Uri.parse("$base/auth/register"),
+  //     headers: {"Content-Type": "application/json"},
+  //     body: jsonEncode({
+  //       "nom": nom,
+  //       "email": email,
+  //       "password": password,
+  //       "password_confirmation": passwordConfirmation,
+  //     }),
+  //   );
+
+  //   return {
+  //     "status": response.statusCode,
+  //     "body": jsonDecode(response.body),
+  //   };
+  // }
+  static Future<Map<String, dynamic>> register({
+    required String nom,
+    required String email,
+    required String password,
+    required String passwordConfirmation,
+  }) async {
+    try {
+      final response = await http
+          .post(
+            Uri.parse("$base/auth/register"),
+            headers: {"Content-Type": "application/json"},
+            body: jsonEncode({
+              "nom": nom,
+              "email": email,
+              "password": password,
+              "password_confirmation": passwordConfirmation,
+            }),
+          )
+          .timeout(const Duration(seconds: 15)); // ⏱️ timeout
+
+      return {
+        "status": response.statusCode,
+        "body": jsonDecode(response.body),
+      };
+    } catch (e) {
+      return {
+        "status": 500,
+        "body": {"message": "Erreur réseau ou serveur inaccessible - $e"},
+      };
+    }
+  }
+
+
+  static Future<Map<String, dynamic>> verifyOtp({
+    required String email,
+    required String otp,
+  }) async {
+    final response = await http.post(
+      Uri.parse("$base/auth/login/otp"),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode({
+        "email": email,
+        "otp": otp,
+      }),
+    );
+
+    return {
+      "status": response.statusCode,
+      "body": jsonDecode(response.body),
+    };
+  }
+}
