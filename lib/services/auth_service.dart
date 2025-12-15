@@ -10,6 +10,7 @@ class AuthService {
 
   Future<Map<String, dynamic>> login(String email, String password) async {
     final url = Uri.parse('$baseUrl/auth/login');
+      print("email : $email, password $password");
     final response = await http.post(
       url,
       headers: {
@@ -21,9 +22,10 @@ class AuthService {
 
     if (response.statusCode == 200) {
       final Map<String, dynamic> body = jsonDecode(response.body);
-      final Map<String, dynamic> data = body['data'];
-      await _storage.write(key: "token", value: data["access_token"]);
-      await _storage.write(key: "role", value: data["role"]); // si besoin
+      // final Map<String, dynamic> data = body['data'];
+      await _storage.write(key: "token", value: body["access_token"]);
+      await _storage.write(key: "role", value: body["role"]); // si besoin
+      await _storage.write(key: "sous_statut", value: body["est_actif"]); // si besoin
       return jsonDecode(response.body);
     } else {
       throw Exception('Erreur : ${response.statusCode} => ${response.body}');

@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'package:dio/dio.dart';
+import 'package:event_rush_mobile/models/myevent_dto.dart';
 import 'package:event_rush_mobile/pages/dashboard/events_page.dart';
 import 'package:event_rush_mobile/pages/event_detail_page.dart';
 import 'package:event_rush_mobile/services/auth_service.dart';
@@ -262,6 +264,33 @@ class EventsService {
         'note': stars
       }),
     );
+  }
+  final Dio dio = Dio(
+    BaseOptions(
+      baseUrl: "https://eventrush.onrender.com/api",
+      headers: {
+        "Accept": "application/json",
+      },
+    ),
+  );
+
+
+  // EventsService(this.dio);
+
+  Future<MyEventsResponse> fetchMyEvents() async {
+    final token = await AuthService.getToken();
+    dio.options.headers["Authorization"] = "Bearer $token";
+
+    final res = await dio.get("/me/events");
+    return MyEventsResponse.fromJson(res.data);
+  }
+
+
+
+  Future<Response> getMyTickets(String token) async {
+    final token = await AuthService.getToken();
+    dio.options.headers["Authorization"] = "Bearer $token";
+    return dio.get("/me/tickets");
   }
 
 
