@@ -1,7 +1,10 @@
+import 'package:event_rush_mobile/models/myevent_dto.dart';
 import 'package:event_rush_mobile/outils/header_my_event.dart';
+import 'package:event_rush_mobile/services/api_service/events_service.dart';
 import 'package:flutter/material.dart';
 // import 'package:../../../outils/header_my_event';
 // import 'package:../base_feed_page';
+import 'package:dio/dio.dart';
 
 
 // class MyEventsPage extends StatelessWidget {
@@ -132,7 +135,8 @@ import 'package:flutter/material.dart';
 
 class MyEventsPage extends StatelessWidget {
   final bool isOrganizer;
-  const MyEventsPage({Key? key, required this.isOrganizer}) : super(key: key);
+  MyEventsPage({Key? key, required this.isOrganizer}) : super(key: key);
+  final service = EventsService();
 
   @override
   Widget build(BuildContext context) {
@@ -163,10 +167,10 @@ class MyEventsPage extends StatelessWidget {
           physics: const BouncingScrollPhysics(), // Scroll rebondissant "fun"
           children: [
             // TAB 1: Participant
-            _ParticipantView(),
+            _ParticipantView(service: service,),
             
             // TAB 2: Organisateur (affiché seulement si isOrganizer est true)
-            if (isOrganizer) _OrganizerView(),
+            if (isOrganizer) _OrganizerView(service: service,),
           ],
         ),
       ),
@@ -174,79 +178,185 @@ class MyEventsPage extends StatelessWidget {
   }
 }
 
+// class _ParticipantView extends StatelessWidget {
+//   @override
+//   Widget build(BuildContext context) {
+//     return ListView(
+//       padding: const EdgeInsets.all(20),
+//       children: const [
+//         FunSectionHeader(title: "Favoris & Suivis", icon: Icons.favorite, color: AppColors.pink),
+//         _EventCard(
+//           title: "Festival Awilé",
+//           date: "24-30 Août 2026",
+//           location: "Porto-Novo",
+//           imageUrl: "https://via.placeholder.com/150", // Placeholder
+//           isFavorite: true,
+//         ),
+//         SizedBox(height: 10),
+//         FunSectionHeader(title: "Je participe", icon: Icons.confirmation_num, color: AppColors.orange),
+//         _EventCard(
+//           title: "Concert Cotonou",
+//           date: "12 Déc 2025",
+//           location: "Fidjrossè",
+//           imageUrl: "https://via.placeholder.com/150",
+//           tag: "Billet acheté",
+//         ),
+//       ],
+//     );
+//   }
+// }
+
 class _ParticipantView extends StatelessWidget {
+  final EventsService service;
+
+  const _ParticipantView({required this.service});
+
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.all(20),
-      children: const [
-        FunSectionHeader(title: "Favoris & Suivis", icon: Icons.favorite, color: AppColors.pink),
-        _EventCard(
-          title: "Festival Awilé",
-          date: "24-30 Août 2026",
-          location: "Porto-Novo",
-          imageUrl: "https://via.placeholder.com/150", // Placeholder
-          isFavorite: true,
-        ),
-        SizedBox(height: 10),
-        FunSectionHeader(title: "Je participe", icon: Icons.confirmation_num, color: AppColors.orange),
-        _EventCard(
-          title: "Concert Cotonou",
-          date: "12 Déc 2025",
-          location: "Fidjrossè",
-          imageUrl: "https://via.placeholder.com/150",
-          tag: "Billet acheté",
-        ),
-      ],
+    return FutureBuilder<MyEventsResponse>(
+      future: service.fetchMyEvents(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (!snapshot.hasData) {
+          return const Center(child: Text("Nothing here 👀"));
+        }
+
+        final data = snapshot.data!;
+
+        return ListView(
+          padding: const EdgeInsets.all(20),
+          children: [
+            if (data.favoris.isNotEmpty) ...[
+              const FunSectionHeader(
+                title: "Favoris",
+                icon: Icons.favorite,
+                color: AppColors.pink,
+              ),
+              ...data.favoris.map((e) => _EventCard(
+                    title: e.title,
+                    date: e.date,
+                    location: e.location,
+                    imageUrl: e.image,
+                    isFavorite: true,
+                  )),
+              const SizedBox(height: 20),
+            ],
+
+            if (data.participations.isNotEmpty) ...[
+              const FunSectionHeader(
+                title: "Je participe",
+                icon: Icons.confirmation_num,
+                color: AppColors.orange,
+              ),
+              ...data.participations.map((e) => _EventCard(
+                    title: e.title,
+                    date: e.date,
+                    location: e.location,
+                    imageUrl: e.image,
+                    tag: "Billet acheté",
+                  )),
+            ],
+          ],
+        );
+      },
     );
   }
 }
 
-class _OrganizerView extends StatelessWidget {
+
+// class _OrganizerView extends StatelessWidget {
+//   @override
+//   Widget build(BuildContext context) {
+//     return ListView(
+//       padding: const EdgeInsets.all(20),
+//       children: [
+//         // Bouton Création Fun
+//         Container(
+//           decoration: BoxDecoration(
+//             gradient: AppColors.mainGradient,
+//             borderRadius: BorderRadius.circular(20),
+//             boxShadow: [BoxShadow(color: AppColors.pink.withOpacity(0.4), blurRadius: 10, offset: const Offset(0, 4))],
+//           ),
+//           child: Material(
+//             color: Colors.transparent,
+//             child: InkWell(
+//               onTap: () { /* Naviguer vers création */ },
+//               borderRadius: BorderRadius.circular(20),
+//               child: Padding(
+//                 padding: const EdgeInsets.all(20),
+//                 child: Row(
+//                   mainAxisAlignment: MainAxisAlignment.center,
+//                   children: const [
+//                     Icon(Icons.add_circle_outline, color: Colors.white, size: 28),
+//                     SizedBox(width: 10),
+//                     Text("Créer un événement", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
+//                   ],
+//                 ),
+//               ),
+//             ),
+//           ),
+//         ),
+//         const SizedBox(height: 20),
+//         const FunSectionHeader(title: "Mes Événements gérés", icon: Icons.dashboard, color: AppColors.purple),
+//         _EventCard(
+//           title: "Arts de la Rue",
+//           date: "11-16 Février 2026",
+//           location: "Abomey-Calavi",
+//           imageUrl: "https://via.placeholder.com/150",
+//           isEditable: true,
+//         ),
+//       ],
+//     );
+//   }
+// }
+
+  class _OrganizerView extends StatelessWidget {
+  final EventsService service;
+
+  const _OrganizerView({required this.service});
+
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.all(20),
-      children: [
-        // Bouton Création Fun
-        Container(
-          decoration: BoxDecoration(
-            gradient: AppColors.mainGradient,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [BoxShadow(color: AppColors.pink.withOpacity(0.4), blurRadius: 10, offset: const Offset(0, 4))],
-          ),
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: () { /* Naviguer vers création */ },
-              borderRadius: BorderRadius.circular(20),
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: const [
-                    Icon(Icons.add_circle_outline, color: Colors.white, size: 28),
-                    SizedBox(width: 10),
-                    Text("Créer un événement", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
-                  ],
-                ),
-              ),
+    return FutureBuilder<MyEventsResponse>(
+      future: service.fetchMyEvents(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        final events = snapshot.data!.organisateur;
+
+        if (events.isEmpty) {
+          return const Center(
+            child: Text("No managed events yet 🚀"),
+          );
+        }
+
+        return ListView(
+          padding: const EdgeInsets.all(20),
+          children: [
+            const FunSectionHeader(
+              title: "Mes Événements gérés",
+              icon: Icons.dashboard,
+              color: AppColors.purple,
             ),
-          ),
-        ),
-        const SizedBox(height: 20),
-        const FunSectionHeader(title: "Mes Événements gérés", icon: Icons.dashboard, color: AppColors.purple),
-        _EventCard(
-          title: "Arts de la Rue",
-          date: "11-16 Février 2026",
-          location: "Abomey-Calavi",
-          imageUrl: "https://via.placeholder.com/150",
-          isEditable: true,
-        ),
-      ],
+            ...events.map((e) => _EventCard(
+                  title: e.title,
+                  date: e.date,
+                  location: e.location,
+                  imageUrl: e.image,
+                  isEditable: true,
+                )),
+          ],
+        );
+      },
     );
   }
 }
+
 
 // --- WIDGET CARTE ÉVÉNEMENT AMÉLIORÉE ---
 class _EventCard extends StatelessWidget {
@@ -312,17 +422,41 @@ class _EventCard extends StatelessWidget {
                     children: [
                       Text(title, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 4),
+                      // Row(
+                      //   children: [
+                      //     Icon(Icons.calendar_today, size: 12, color: AppColors.grey),
+                      //     const SizedBox(width: 4),
+                      //     Text(date, style: TextStyle(color: AppColors.grey, fontSize: 12)),
+                      //     const SizedBox(width: 10),
+                      //     Icon(Icons.location_on, size: 12, color: AppColors.grey),
+                      //     const SizedBox(width: 4),
+                      //     Text(location, style: TextStyle(color: AppColors.grey, fontSize: 12)),
+                      //   ],
+                      // ),
                       Row(
                         children: [
                           Icon(Icons.calendar_today, size: 12, color: AppColors.grey),
                           const SizedBox(width: 4),
-                          Text(date, style: TextStyle(color: AppColors.grey, fontSize: 12)),
+                          Flexible(
+                            child: Text(
+                              date,
+                              style: TextStyle(color: AppColors.grey, fontSize: 12),
+                              overflow: TextOverflow.ellipsis, // coupe proprement
+                            ),
+                          ),
                           const SizedBox(width: 10),
                           Icon(Icons.location_on, size: 12, color: AppColors.grey),
                           const SizedBox(width: 4),
-                          Text(location, style: TextStyle(color: AppColors.grey, fontSize: 12)),
+                          Flexible(
+                            child: Text(
+                              location,
+                              style: TextStyle(color: AppColors.grey, fontSize: 12),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
                         ],
                       ),
+
                     ],
                   ),
                 ),

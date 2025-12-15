@@ -85,9 +85,9 @@ class _MainDashboardState extends State<MainDashboard> {
   final List<Widget> _pages = [
     Center(child: Text("Accueil")),
     Center(child: Text("Actualités")),
+    Center(child: Text("Event")),
     Center(child: Text("Explorer")),
-    Center(child: Text("Organisateurs")),
-    Center(child: Text("Communauté")),
+    // Center(child: Text("Communauté")),
   ];
 
   @override
@@ -101,7 +101,7 @@ class _MainDashboardState extends State<MainDashboard> {
               HomePage(apiService: apiService),
               OrganizersPage(),
               EventPage(),
-              CommunityPage(apiService: apiService),
+              // CommunityPage(apiService: apiService),
               NewsFeedPage(apiService: apiService),
             ],
           ),
@@ -163,9 +163,9 @@ class _MainDashboardState extends State<MainDashboard> {
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Accueil'),
           BottomNavigationBarItem(icon: Icon(Icons.article), label: 'Actualités'),
+          BottomNavigationBarItem(icon: Icon(Icons.business), label: 'Event'),
           BottomNavigationBarItem(icon: Icon(Icons.explore), label: 'Explorer'),
-          BottomNavigationBarItem(icon: Icon(Icons.business), label: 'Organisateurs'),
-          BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Communauté'),
+          // BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Communauté'),
         ],
       ),
     );
