@@ -139,7 +139,7 @@ import 'package:intl/date_symbol_data_local.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initializeDateFormatting('fr_FR', null); // ou 'en_US', selon locale
-  runApp(ProviderScope(child: MyApp()));
+  runApp(ProviderScope(child: MyApp()));   //
 }
 
 class MyApp extends ConsumerWidget {
