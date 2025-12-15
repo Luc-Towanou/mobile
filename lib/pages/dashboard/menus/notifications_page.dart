@@ -343,7 +343,23 @@ class _NotificationsPageState extends State<NotificationsPage> {
             children: [
               Expanded(
                 child: InkWell(
-                  onTap: () {
+                  onTap: () 
+                    async {
+                      try {
+                        final result = await _profileService.MarkAllRead(); // 👈 appel de ta fonction
+                        debugPrint("Notifications marquées comme lues : $result");
+                        // Tu peux aussi déclencher un setState ou un snackbar ici
+                        // setState(() { ... });
+                        // ScaffoldMessenger.of(context).showSnackBar(
+                        //   SnackBar(content: Text("Toutes les notifications sont lues"))
+                        // );
+                      } catch (e) {
+                        debugPrint("Erreur lors du marquage : $e");
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text("Erreur lors du marquage des notifications"))
+                        );
+                      }
+                    
                     // TODO: Appel API pour tout marquer comme lu
                   },
                   child: Container(

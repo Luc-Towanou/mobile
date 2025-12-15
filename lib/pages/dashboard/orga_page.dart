@@ -236,21 +236,21 @@ class _OrganizersPageState extends State<OrganizersPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back),
-          // onPressed: () => Navigator.of(context).pop(), //_navigateToHomePage
-          onPressed: _navigateToHomePage,
+        // leading: IconButton(
+        //   icon: Icon(Icons.arrow_back),
+        //   // onPressed: () => Navigator.of(context).pop(), //_navigateToHomePage
+        //   onPressed: _navigateToHomePage,
           
-        ),
+        // ),
         title: Text('Organisateurs & Actualités'),
-        backgroundColor: const Color.fromARGB(255, 235, 76, 155),
+        backgroundColor: const Color.fromARGB(255, 109, 34, 80),
         elevation: 0,
       ),
       floatingActionButton: _expandedOrganizerId != null
           ? FloatingActionButton(
               onPressed: _closeAllSections,
               child: Icon(Icons.close),
-              backgroundColor: Color.fromARGB(255, 250, 124, 202),
+              backgroundColor: Color.fromARGB(255, 253, 166, 35),
             )
           : null,
       body: SingleChildScrollView(

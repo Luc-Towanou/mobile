@@ -1,4 +1,5 @@
 import 'package:event_rush_mobile/outils/notifications.dart';
+import 'package:event_rush_mobile/pages/event_detail_page.dart';
 import 'package:event_rush_mobile/services/api_service/events_service.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -29,41 +30,96 @@ class _EventPageState extends State<EventPage> {
   }
   final EventsService eventsService = EventsService();
 
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   // Initialiser le formatage des dates
+  //   initializeDateFormatting('fr_FR', null).then((_) {
+  //     setState(() {
+  //       _isDateFormatInitialized = true;
+  //     });
+  //   });
+  //   _fetchEvents();
+  // }
   @override
-  void initState() {
-    super.initState();
-    // Initialiser le formatage des dates
-    initializeDateFormatting('fr_FR', null).then((_) {
-      setState(() {
-        _isDateFormatInitialized = true;
+    void initState() {
+      super.initState();
+
+      initializeDateFormatting('fr_FR', null).then((_) {
+        if (!mounted) return;
+        setState(() {
+          _isDateFormatInitialized = true;
+        });
       });
-    });
-    _fetchEvents();
-  }
+
+      _fetchEvents();
+    }
 
 
+
+  // final List<Event> _events = [];
+  //   Future<void> _fetchEvents() async {
+  //     try {
+  //     final List<Event> events = await eventsService.index();
+  //     print("Événements récupérés : ${events.length}");
+  //     setState(() {
+  //       _events.clear();
+  //       _events.addAll(events);
+  //     });
+  //   } catch (e) {
+  //     print("Erreur de récupération des événements : $e");
+
+  //     // ➡️ Relancer après 5 secondes
+  //     Future.delayed(const Duration(seconds: 5), _fetchEvents);
+
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       const SnackBar(content: Text("Erreur de connexion")),
+  //     );
+  //     showError(context, "Récupération échouée 😕.");
+  //   }
+    
+  // }
   final List<Event> _events = [];
-    Future<void> _fetchEvents() async {
-      try {
-      final List<Event> events = await eventsService.index();
-      print("Événements récupérés : ${events.length}");
-      setState(() {
-        _events.clear();
-        _events.addAll(events);
-      });
-    } catch (e) {
-      print("Erreur de récupération des événements : $e");
+  bool _isFetching = false;
 
-      // ➡️ Relancer après 5 secondes
-      Future.delayed(const Duration(seconds: 5), _fetchEvents);
+  Future<void> _fetchEvents() async {
+    if (!mounted || _isFetching) return;
+
+    _isFetching = true;
+
+    try {
+      final List<Event> events = await eventsService.index();
+      debugPrint("Événements récupérés : ${events.length}");
+
+      if (!mounted) return;
+
+      setState(() {
+        _events
+          ..clear()
+          ..addAll(events);
+      });
+
+    } catch (e) {
+      debugPrint("Erreur de récupération des événements : $e");
+
+      if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Erreur de connexion")),
       );
+
       showError(context, "Récupération échouée 😕.");
+
+      // 🔥 SAFE retry après 5 secondes
+      Future.delayed(const Duration(seconds: 5), () {
+        if (mounted) _fetchEvents();
+      });
+
+    } finally {
+      _isFetching = false;
     }
-    
   }
+
 
 
   List<Event> get _filteredEvents {
@@ -118,14 +174,14 @@ class _EventPageState extends State<EventPage> {
     }
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back),
-          // onPressed: () => Navigator.of(context).pop(), //_navigateToHomePage
-          onPressed: _navigateToHomePage,
+        // leading: IconButton(
+        //   icon: Icon(Icons.arrow_back),
+        //   // onPressed: () => Navigator.of(context).pop(), //_navigateToHomePage
+        //   onPressed: _navigateToHomePage,
           
-        ),
+        // ),
         title: Text('Événements'),
-        backgroundColor: Color.fromARGB(255, 183, 58, 135),
+        backgroundColor: Color.fromARGB(255, 109, 34, 80),
         elevation: 0,
       ),
       body: Column(
@@ -275,194 +331,440 @@ class _EventPageState extends State<EventPage> {
     );
   }
 
-  Widget _buildEventCard(Event event) {
-    // final percentageSold = ((event.totalTickets! - event.availableTickets!) / event.totalTickets!) * 100;
-    final percentageSold = (event.totalTickets != null && event.totalTickets! > 0)
-    ? ((event.totalTickets! - (event.availableTickets ?? 0)) / event.totalTickets!) * 100
-    : 0.0;
+  // Widget _buildEventCard(Event event) {
+  //   // final percentageSold = ((event.totalTickets! - event.availableTickets!) / event.totalTickets!) * 100;
+  //   final percentageSold = (event.totalTickets != null && event.totalTickets! > 0)
+  //   ? ((event.totalTickets! - (event.availableTickets ?? 0)) / event.totalTickets!) * 100
+  //   : 0.0;
     
+  //   return Card(
+  //     margin: EdgeInsets.only(bottom: 16),
+  //     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+  //     elevation: 3,
+  //     child: Column(
+  //       crossAxisAlignment: CrossAxisAlignment.stretch,
+  //       children: [
+  //         // Image de l'événement
+  //         ClipRRect(
+  //           borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
+  //           child: Image.network(
+  //             event.affiche_url,
+  //             height: 150,
+  //             fit: BoxFit.cover,
+  //             loadingBuilder: (context, child, loadingProgress) {
+  //               if (loadingProgress == null) return child;
+  //               return Container(
+  //                 height: 150,
+  //                 color: Colors.grey[200],
+  //                 child: Center(
+  //                   // child: CircularProgressIndicator()
+  //                   child: const SizedBox(
+  //                               width: 50,
+  //                               height: 50,
+  //                               // child: SpinKitThreeBounce( //3 point horizontaux
+  //                               // child: SpinKitWave( // des barres comme si on jouait de la musique
+  //                               child: SpinKitPulse (  // SpinKitFadingCube
+  //                                 // strokeWidth: 2,
+  //                                 size: 20,
+  //                                 color: Color.fromARGB(255, 17, 134, 17),
+  //                               ),
+  //                             )
+  //                   ),
+  //               );
+  //             },
+  //             errorBuilder: (context, error, stackTrace) {
+  //               return Container(
+  //                 height: 150,
+  //                 color: Colors.grey[200],
+  //                 child: Icon(Icons.error, color: Colors.grey),
+  //               );
+  //             },
+  //           ),
+  //         ),
+          
+  //         // Contenu de la carte
+  //         Padding(
+  //           padding: EdgeInsets.all(16),
+  //           child: Column(
+  //             crossAxisAlignment: CrossAxisAlignment.start,
+  //             children: [
+  //               // Titre et catégorie
+  //               Row(
+  //                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  //                 children: [
+  //                   Expanded(
+  //                     child: Text(
+  //                       event.titre,
+  //                       style: TextStyle(
+  //                         fontSize: 18,
+  //                         fontWeight: FontWeight.bold,
+  //                       ),
+  //                       maxLines: 1,
+  //                       overflow: TextOverflow.ellipsis,
+  //                     ),
+  //                   ),
+  //                   Container(
+  //                     padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+  //                     decoration: BoxDecoration(
+  //                       color: Colors.deepPurple.withOpacity(0.1),
+  //                       borderRadius: BorderRadius.circular(12),
+  //                     ),
+  //                     child: Text(
+  //                       event.category ?? 'Inconnu', 
+  //                       style: TextStyle(
+  //                         fontSize: 12,
+  //                         color: Colors.deepPurple,
+  //                         fontWeight: FontWeight.bold,
+  //                       ),
+  //                     ),
+  //                   ),
+  //                 ],
+  //               ),
+                
+  //               SizedBox(height: 10),
+                
+  //               // Date
+  //               Row(
+  //                 children: [
+  //                   Icon(Icons.calendar_today, size: 16, color: Colors.deepPurple),
+  //                   SizedBox(width: 8),
+  //                   Text(
+  //                     DateFormat('EEEE dd MMMM yyyy', 'fr_FR').format(event.dateDebut),
+  //                     style: TextStyle(fontSize: 14),
+  //                   ),
+  //                 ],
+  //               ),
+                
+  //               SizedBox(height: 8),
+                
+  //               // Lieu
+  //               Row(
+  //                 children: [
+  //                   Icon(Icons.location_on, size: 16, color: Colors.deepPurple),
+  //                   SizedBox(width: 8),
+  //                   Expanded(
+  //                     child: Text(
+  //                       event.lieu,
+  //                       style: TextStyle(fontSize: 14),
+  //                       maxLines: 1,
+  //                       overflow: TextOverflow.ellipsis,
+  //                     ),
+  //                   ),
+  //                 ],
+  //               ),
+                
+  //               SizedBox(height: 12),
+                
+  //               // Prix et disponibilité
+  //               Row(
+  //                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  //                 children: [
+  //                   Text(
+  //                     event.price! > 0 ? '${event.price?.toStringAsFixed(2)}€' : 'Gratuit',
+  //                     style: TextStyle(
+  //                       fontSize: 16,
+  //                       fontWeight: FontWeight.bold,
+  //                       color: Colors.deepPurple,
+  //                     ),
+  //                   ),
+  //                   Text(
+  //                     '${event.availableTickets} places restantes',
+  //                     style: TextStyle(
+  //                       fontSize: 14,
+  //                       color: event.availableTickets! < 50 ? Colors.orange : Colors.green,
+  //                     ),
+  //                   ),
+  //                   Container(
+  //                     padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+  //                     decoration: BoxDecoration(
+  //                       color: event.statusColor.withValues(alpha: 0.3),//Colors.deepPurple.withOpacity(0.1),
+  //                       borderRadius: BorderRadius.circular(12),
+  //                     ),
+  //                     child: Text(
+  //                       event.status, 
+  //                       style: TextStyle(
+  //                         fontSize: 15,
+  //                         color: event.statusColor,
+  //                         fontWeight: FontWeight.bold,
+  //                       ),
+  //                     ),
+  //                   ),
+  //                 ],
+  //               ),
+                
+  //               SizedBox(height: 10),
+                
+  //               // Barre de progression pour les billets vendus
+  //               LinearProgressIndicator(
+  //                 value: (percentageSold.isNaN || percentageSold.isInfinite) 
+  //                     ? 0 
+  //                     : percentageSold / 100,
+  //                 backgroundColor: Colors.grey[200],
+  //                 valueColor: AlwaysStoppedAnimation<Color>(
+  //                   percentageSold > 90 ? Colors.red : Colors.green,
+  //                 ),
+  //                 minHeight: 6,
+  //                 borderRadius: BorderRadius.circular(3),
+  //               ),
+
+  //               // LinearProgressIndicator(
+  //               //   value: percentageSold / 100,
+  //               //   backgroundColor: Colors.grey[200],
+  //               //   valueColor: AlwaysStoppedAnimation<Color>(
+  //               //     percentageSold > 90 ? Colors.red : Colors.green,
+  //               //   ),
+  //               //   minHeight: 6,
+  //               //   borderRadius: BorderRadius.circular(3),
+  //               // ),
+                
+  //               SizedBox(height: 5),
+                
+  //               // Pourcentage de vente
+  //               Align(
+  //                 alignment: Alignment.centerRight,
+  //                 child: Text(
+  //                   '${percentageSold.toStringAsFixed(0)}% vendus',
+  //                   style: TextStyle(
+  //                     fontSize: 12,
+  //                     color: Colors.grey,
+  //                   ),
+  //                 ),
+  //               ),
+  //             ],
+  //           ),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
+
+  Widget _buildEventCard(Event event) {
+    // Calcul du pourcentage (inchangé)
+    final percentageSold = (event.totalTickets != null && event.totalTickets! > 0)
+        ? ((event.totalTickets! - (event.availableTickets ?? 0)) / event.totalTickets!) * 100
+        : 0.0;
+
     return Card(
       margin: EdgeInsets.only(bottom: 16),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       elevation: 3,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Image de l'événement
-          ClipRRect(
-            borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
-            child: Image.network(
-              event.affiche_url,
-              height: 150,
-              fit: BoxFit.cover,
-              loadingBuilder: (context, child, loadingProgress) {
-                if (loadingProgress == null) return child;
-                return Container(
-                  height: 150,
-                  color: Colors.grey[200],
-                  child: Center(
-                    // child: CircularProgressIndicator()
-                    child: const SizedBox(
-                                width: 50,
-                                height: 50,
-                                // child: SpinKitThreeBounce( //3 point horizontaux
-                                // child: SpinKitWave( // des barres comme si on jouait de la musique
-                                child: SpinKitPulse (  // SpinKitFadingCube
-                                  // strokeWidth: 2,
-                                  size: 20,
-                                  color: Color.fromARGB(255, 17, 134, 17),
-                                ),
-                              )
+      // 1. IMPORTANT : Ceci assure que l'effet de clic reste dans les bords arrondis
+      clipBehavior: Clip.antiAlias, 
+      
+      // 2. InkWell rend le tout cliquable
+      child: InkWell(
+        onTap: () async {
+           print("lunch pressing ... : ${event.toJson()}");
+          final service = EventsService();
+          print("lunch try ... : " + event.id);
+          try {
+            print("lunch service ... : ");
+            final evenement = await service.fetchEventById(int.parse(event.id.toString()));
+            // final event = await service.fetchEventById(119);
+            print("Login réussi : $evenement");
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => EventDetailPage(event: evenement),
+              ),
+            );
+          } catch (e) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text("Impossible de charger l'événement : " + (event.titre?.toString() ?? '')),
+              )
+              
+            );
+            print("fetching échoué : $e");
+          }
+          // // Navigation vers la page de détails
+          // Navigator.push(
+          //   context, // Assurez-vous que 'context' est accessible ici (c'est le cas si vous êtes dans un State)
+          //   MaterialPageRoute(
+          //     builder: (context) => EventDetailPage(event: _mapEventToEventShow(event)), 
+          //   ),
+          // );
+        },
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Image de l'événement
+            ClipRRect(
+              borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
+              child: Image.network(
+                event.affiche_url,
+                height: 150,
+                fit: BoxFit.cover,
+                loadingBuilder: (context, child, loadingProgress) {
+                  if (loadingProgress == null) return child;
+                  return Container(
+                    height: 150,
+                    color: Colors.grey[200],
+                    child: Center(
+                      child: const SizedBox(
+                        width: 50,
+                        height: 50,
+                        child: SpinKitPulse(
+                          size: 20,
+                          color: Color.fromARGB(255, 17, 134, 17),
+                        ),
+                      ),
                     ),
-                );
-              },
-              errorBuilder: (context, error, stackTrace) {
-                return Container(
-                  height: 150,
-                  color: Colors.grey[200],
-                  child: Icon(Icons.error, color: Colors.grey),
-                );
-              },
+                  );
+                },
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    height: 150,
+                    color: Colors.grey[200],
+                    child: Icon(Icons.error, color: Colors.grey),
+                  );
+                },
+              ),
             ),
-          ),
-          
-          // Contenu de la carte
-          Padding(
-            padding: EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Titre et catégorie
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        event.titre,
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    Container(
-                      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: Colors.deepPurple.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        event.category ?? 'Inconnu', 
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.deepPurple,
-                          fontWeight: FontWeight.bold,
+            
+            // Contenu de la carte
+            Padding(
+              padding: EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Titre et catégorie
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          event.titre,
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                    ),
-                  ],
-                ),
-                
-                SizedBox(height: 10),
-                
-                // Date
-                Row(
-                  children: [
-                    Icon(Icons.calendar_today, size: 16, color: Colors.deepPurple),
-                    SizedBox(width: 8),
-                    Text(
-                      DateFormat('EEEE dd MMMM yyyy', 'fr_FR').format(event.dateDebut),
-                      style: TextStyle(fontSize: 14),
-                    ),
-                  ],
-                ),
-                
-                SizedBox(height: 8),
-                
-                // Lieu
-                Row(
-                  children: [
-                    Icon(Icons.location_on, size: 16, color: Colors.deepPurple),
-                    SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        event.lieu,
+                      Container(
+                        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.deepPurple.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          event.category ?? 'Inconnu',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.deepPurple,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  
+                  SizedBox(height: 10),
+                  
+                  // Date
+                  Row(
+                    children: [
+                      Icon(Icons.calendar_today, size: 16, color: Colors.deepPurple),
+                      SizedBox(width: 8),
+                      Text(
+                        DateFormat('EEEE dd MMMM yyyy', 'fr_FR').format(event.dateDebut),
                         style: TextStyle(fontSize: 14),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                       ),
-                    ),
-                  ],
-                ),
-                
-                SizedBox(height: 12),
-                
-                // Prix et disponibilité
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      event.price! > 0 ? '${event.price?.toStringAsFixed(2)}€' : 'Gratuit',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.deepPurple,
-                      ),
-                    ),
-                    Text(
-                      '${event.availableTickets} places restantes',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: event.availableTickets! < 50 ? Colors.orange : Colors.green,
-                      ),
-                    ),
-                  ],
-                ),
-                
-                SizedBox(height: 10),
-                
-                // Barre de progression pour les billets vendus
-                LinearProgressIndicator(
-                  value: (percentageSold.isNaN || percentageSold.isInfinite) 
-                      ? 0 
-                      : percentageSold / 100,
-                  backgroundColor: Colors.grey[200],
-                  valueColor: AlwaysStoppedAnimation<Color>(
-                    percentageSold > 90 ? Colors.red : Colors.green,
+                    ],
                   ),
-                  minHeight: 6,
-                  borderRadius: BorderRadius.circular(3),
-                ),
-
-                // LinearProgressIndicator(
-                //   value: percentageSold / 100,
-                //   backgroundColor: Colors.grey[200],
-                //   valueColor: AlwaysStoppedAnimation<Color>(
-                //     percentageSold > 90 ? Colors.red : Colors.green,
-                //   ),
-                //   minHeight: 6,
-                //   borderRadius: BorderRadius.circular(3),
-                // ),
-                
-                SizedBox(height: 5),
-                
-                // Pourcentage de vente
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: Text(
-                    '${percentageSold.toStringAsFixed(0)}% vendus',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey,
+                  
+                  SizedBox(height: 8),
+                  
+                  // Lieu
+                  Row(
+                    children: [
+                      Icon(Icons.location_on, size: 16, color: Colors.deepPurple),
+                      SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          event.lieu,
+                          style: TextStyle(fontSize: 14),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                  
+                  SizedBox(height: 12),
+                  
+                  // Prix et disponibilité
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        event.price! > 0 ? '${event.price?.toStringAsFixed(2)}€' : 'Gratuit',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.deepPurple,
+                        ),
+                      ),
+                      Text(
+                        '${event.availableTickets} places restantes',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: event.availableTickets! < 50 ? Colors.orange : Colors.green,
+                        ),
+                      ),
+                      Container(
+                        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: event.statusColor.withValues(alpha: 0.3),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          event.status,
+                          style: TextStyle(
+                            fontSize: 15,
+                            color: event.statusColor,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  
+                  SizedBox(height: 10),
+                  
+                  // Barre de progression
+                  LinearProgressIndicator(
+                    value: (percentageSold.isNaN || percentageSold.isInfinite)
+                        ? 0
+                        : percentageSold / 100,
+                    backgroundColor: Colors.grey[200],
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      percentageSold > 90 ? Colors.red : Colors.green,
+                    ),
+                    minHeight: 6,
+                    borderRadius: BorderRadius.circular(3),
+                  ),
+                  
+                  SizedBox(height: 5),
+                  
+                  // Pourcentage de vente
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: Text(
+                      '${percentageSold.toStringAsFixed(0)}% vendus',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey,
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -533,6 +835,20 @@ class Event {
         : null,
     points: json['points'] ?? 0,
   );
+}
+// recuperer le statut de l'evenement par rapport à now 
+String get status {
+  final now = DateTime.now();
+  if (now.isAfter(this.dateFin)) return "Passé";
+  if (now.isAfter(this.dateDebut) && now.isBefore(this.dateFin)) return "En cours";
+  return "A venir";
+}
+// couleur en fonction du statut de l'evenement
+Color get statusColor {
+  final now = DateTime.now();
+  if (now.isAfter(this.dateFin)) return Colors.grey;
+  if (now.isAfter(this.dateDebut) && now.isBefore(this.dateFin)) return Colors.green;
+  return Colors.deepPurple;
 }
 
 

@@ -163,6 +163,7 @@ class EventsService {
       print ("organisateur : nom : ${data['organisateur']['utilisateur']['nom']}");
       print ("note moyenne : ${data['commentaires']},");
       // print ("ticketsnom : ${data['organisateur']['utilisateur']['nom']}");
+      print ("data : ${data},");
       return EventShow(
         id: data['id'],
         titre: data['titre'],
@@ -193,17 +194,17 @@ class EventsService {
         ),
         comments: (data['commentaires'] as List)
             .map((c) => Comment(
-                  auteur: c['auteur'] ?? 'Anonyme',
+                  auteur: c['utilisateur']['nom'] ?? 'Anonyme',
                   contenu: c['contenu'] ?? '',
-                  etoiles: c['etoiles'] ?? 0,
-                  date: DateTime.parse(c['created_at']),
+                  etoiles: c['note'] ?? 0,
+                  date: DateTime.parse(c['date']),
                 ))
             .toList(),
         tickets: (data['tickets'] as List)
             .map((t) => Ticket(
                   id: t['id'].toString(),
                   nom: t['type'],
-                  description: t['description'] ?? '',
+                  // description: t['description'] ?? '',
                   prix: (t['prix'] ?? 0).toDouble(),
                   devise: t['devise'] ?? 'XOF',
                   stock: t['quantite_restante'] ?? 0,

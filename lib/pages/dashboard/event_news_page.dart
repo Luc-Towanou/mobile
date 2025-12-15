@@ -1,4 +1,6 @@
+import 'package:event_rush_mobile/models/event_news.dart';
 import 'package:event_rush_mobile/services/api_service.dart';
+import 'package:event_rush_mobile/widgets/skeletons/event_news_skeleton.dart';
 import 'package:flutter/material.dart';
 
 /// EventRush – News / Status-like Feed
@@ -27,67 +29,122 @@ class NewsFeedPage extends StatefulWidget {
 
 class _NewsFeedPageState extends State<NewsFeedPage> {
   final _scrollController = ScrollController();
-
+  bool _isLoading = true;
+  String? _error;
+  FeedEventNewsResponse? _feed;
   // --- Mock data (replace with API data) ---
-  final List<_Story> stories = List.generate(
-    12,
-    (i) => _Story(
-      username: 'Org ${i + 1}',
-      imageUrl: 'https://picsum.photos/seed/story$i/400/700',
-      isVerified: i % 3 == 0,
-    ),
-  );
+  // final List<_Story> stories = List.generate(
+  //   12,
+  //   (i) => _Story(
+  //     username: 'Org ${i + 1}',
+  //     imageUrl: 'https://picsum.photos/seed/story$i/400/700',
+  //     isVerified: i % 3 == 0,
+  //   ),
+  // );
+  // final stories = _feed!.stories.map<_Story>((s) {
+  //   return _Story(
+  //     username: s['utilisateur']['nom'],
+  //     imageUrl: s['media_path'],
+  //     isVerified: s['utilisateur']['role'] == 'organisateur',
+  //   );
+  // }).toList();
 
-  final List<_EventCard> trendingEvents = List.generate(
-    10,
-    (i) => _EventCard(
-      title: 'Soirée Afrobeat Vol. ${i + 1}',
-      subtitle: 'Cotonou • Ven 20:${10 + i}',
-      imageUrl: 'https://picsum.photos/seed/event$i/800/600',
-      likes: 120 + i * 7,
-      priceFrom: 3500 + i * 500,
-    ),
-  );
 
-  final List<_Article> articles = [
-    _Article(
-      title: '5 tips pour profiter d’un festival comme un pro',
-      excerpt: 'Hydrate-toi, planifie tes sets, shoes confort et vibe positive...',
-      imageUrl: 'https://picsum.photos/seed/article1/800/500',
-      readTime: '3 min',
-    ),
-    _Article(
-      title: 'Top 10 des salles à Cotonou',
-      excerpt: 'Du cosy intimiste à l’aréna qui claque, voici notre sélection...',
-      imageUrl: 'https://picsum.photos/seed/article2/800/500',
-      readTime: '5 min',
-    ),
-    _Article(
-      title: 'Interview: DJ Kossi parle de son nouveau set',
-      excerpt: 'Un mélange d’Afro-house, Amapiano et surprises pour chauffer la nuit...',
-      imageUrl: 'https://picsum.photos/seed/article3/800/500',
-      readTime: '4 min',
-    ),
-  ];
+  // final List<_EventCard> trendingEvents = List.generate(
+  //   10,
+  //   (i) => _EventCard(
+  //     title: 'Soirée Afrobeat Vol. ${i + 1}',
+  //     subtitle: 'Cotonou • Ven 20:${10 + i}',
+  //     imageUrl: 'https://picsum.photos/seed/event$i/800/600',
+  //     likes: 120 + i * 7,
+  //     priceFrom: 3500 + i * 500,
+  //   ),
+  // );
+  // final trendingEvents = _feed!.trendingEvents.map<_EventCard>((e) {
+  //   return _EventCard(
+  //     title: e['title'],
+  //     subtitle: e['subtitle'],
+  //     imageUrl: e['image'],
+  //     likes: e['likes'],
+  //     priceFrom: e['price_from'],
+  //   );
+  // }).toList();
 
-  final List<_CommunityPost> community = List.generate(
-    8,
-    (i) => _CommunityPost(
-      user: 'Membre ${i + 1}',
-      text: 'J’ai adoré l’event d’hier !🔥 Ambiance de fou et son nickel.',
-      imageUrl: i % 2 == 0 ? 'https://picsum.photos/seed/post$i/900/700' : null,
-      timeAgo: '${i + 1}h',
-      reactions: 10 + i * 3,
-      comments: 2 + i,
-    ),
-  );
 
-  final List<_AgendaItem> agenda = [
-    _AgendaItem('Concert live – Marina', 'Jeudi 21:00', '3 km'),
-    _AgendaItem('Battle de danse', 'Vendredi 19:30', '2 km'),
-    _AgendaItem('Comedy Night', 'Samedi 20:00', '4 km'),
-    _AgendaItem('Open Mic', 'Dimanche 18:00', '1 km'),
-  ];
+  // final List<_Article> articles = [
+  //   _Article(
+  //     title: '5 tips pour profiter d’un festival comme un pro',
+  //     excerpt: 'Hydrate-toi, planifie tes sets, shoes confort et vibe positive...',
+  //     imageUrl: 'https://picsum.photos/seed/article1/800/500',
+  //     readTime: '3 min',
+  //   ),
+  //   _Article(
+  //     title: 'Top 10 des salles à Cotonou',
+  //     excerpt: 'Du cosy intimiste à l’aréna qui claque, voici notre sélection...',
+  //     imageUrl: 'https://picsum.photos/seed/article2/800/500',
+  //     readTime: '5 min',
+  //   ),
+  //   _Article(
+  //     title: 'Interview: DJ Kossi parle de son nouveau set',
+  //     excerpt: 'Un mélange d’Afro-house, Amapiano et surprises pour chauffer la nuit...',
+  //     imageUrl: 'https://picsum.photos/seed/article3/800/500',
+  //     readTime: '4 min',
+  //   ),
+  // ];
+
+  // final List<_CommunityPost> community = List.generate(
+  //   8,
+  //   (i) => _CommunityPost(
+  //     user: 'Membre ${i + 1}',
+  //     text: 'J’ai adoré l’event d’hier !🔥 Ambiance de fou et son nickel.',
+  //     imageUrl: i % 2 == 0 ? 'https://picsum.photos/seed/post$i/900/700' : null,
+  //     timeAgo: '${i + 1}h',
+  //     reactions: 10 + i * 3,
+  //     comments: 2 + i,
+  //   ),
+  // );
+
+  // final community = _feed!.communityPosts.map<_CommunityPost>((p) {
+  //   return _CommunityPost(
+  //     user: p['utilisateur']['nom'],
+  //     text: p['contenu'],
+  //     imageUrl: p['image'],
+  //     timeAgo: p['time_ago'],
+  //     reactions: p['reactions_count'],
+  //     comments: p['comments_count'],
+  //   );
+  // }).toList(); 
+
+
+  // final List<_AgendaItem> agenda = [
+  //   _AgendaItem('Concert live – Marina', 'Jeudi 21:00', '3 km'),
+  //   _AgendaItem('Battle de danse', 'Vendredi 19:30', '2 km'),
+  //   _AgendaItem('Comedy Night', 'Samedi 20:00', '4 km'),
+  //   _AgendaItem('Open Mic', 'Dimanche 18:00', '1 km'),
+  // ];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadFeed();
+  }
+
+  Future<void> _loadFeed() async {
+    try {
+      final data = await widget.apiService.fetcheventnewsFeed();
+
+      setState(() {
+        _feed = data;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _error = e.toString();
+        _isLoading = false;
+      });
+    }
+  }
+
 
   @override
   void dispose() {
@@ -97,7 +154,107 @@ class _NewsFeedPageState extends State<NewsFeedPage> {
 
   @override
   Widget build(BuildContext context) {
+    // if (_isLoading) {
+    //   return const Scaffold(
+    //     body: Center(child: CircularProgressIndicator()),
+    //   );
+    // }
+    if (_isLoading) {
+      return const EventNewsSkeleton();
+    }
+    // return EventNewsPage(data: feed);
+
+    if (_error != null) {
+      return Scaffold(
+        body: Center(
+          child: Text(
+            'Erreur de chargement 😢\n$_error',
+            textAlign: TextAlign.center,
+          ),
+        ),
+      );
+    }
+
     final theme = Theme.of(context);
+
+    // Initialize lists after _feed is loaded
+    final List<_Story> stories = _feed!.stories.map<_Story>((s) {
+      
+      return _Story(
+        username: s.user.nom,
+        imageUrl: s.mediaPath,
+        isVerified: s.user.role == 'organisateur',
+      );
+    }).toList();
+  print ("stories : ${stories},"); 
+    // Assuming you have a trendingEvents list in FeedEventNewsResponse
+    // For now, using mock data if _feed.trendingEvents is not available
+    // final List<_EventCard> trendingEvents = List.generate(
+    //   10,
+    //   (i) => _EventCard(
+    //     title: 'Soirée Afrobeat Vol. ${i + 1}',
+    //     subtitle: 'Cotonou • Ven 20:${10 + i}',
+    //     imageUrl: 'https://picsum.photos/seed/event$i/800/600',
+    //     likes: 120 + i * 7,
+    //     priceFrom: 3500 + i * 500,
+    //   ),
+    // );
+    final List<_EventCard> $trendingEvents = _feed!.clips.map<_EventCard>((s) {
+        return _EventCard(
+          title: s.description.isNotEmpty
+              ? s.description
+              : 'Événement en vedette',
+          subtitle: s.user.nom,
+          imageUrl: s.mediaPath,
+          likes: 0,       // à brancher plus tard
+          priceFrom: 0,   // idem (pricing)
+        );
+      }).toList();
+
+      final List<_ClipModel> $clips = _feed!.clips.map<_ClipModel>((c) {
+        return _ClipModel(
+          id: c.id,
+          description: c.description,
+          type: c.type,
+          mediaPath: c.mediaPath,
+          eventId: c.eventId,
+          user: c.user,
+        );
+      }).toList();
+
+
+    final List<_Article> articles = _feed!.articles.map<_Article>((s) {
+        return _Article(
+          title: s.title,
+          excerpt: s.excerpt,
+          imageUrl: s.cover,
+          readTime: s.readTime,
+        );
+      }).toList();
+
+    final List<_CommunityPost> community = _feed!.communityPosts.map<_CommunityPost>((p) {
+      return _CommunityPost(
+        user: p.user.nom, 
+        text: p.contenu, 
+        imageUrl: null, 
+        timeAgo: '2h', 
+        reactions: 0, 
+        comments: 0); // Adjust as per your CommunityPostModel
+    }).toList();
+
+    List<_AgendaItem> agenda = _feed!.agenda.map<_AgendaItem>((s) {
+        return _AgendaItem(
+          s.title,
+          '${s.dateDebut.day}/${s.dateDebut.month} ${s.dateDebut.hour}:${s.dateDebut.minute}', // Format date as string
+          '${s.billetsCount} billets', // Convert int to string
+
+          // s.description,
+          // s.billetsCount,
+          // s.dateDebut,
+          // 'Ce soir • 19h',
+          // '2 km',
+        );
+      }).toList();
 
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
@@ -139,7 +296,7 @@ class _NewsFeedPageState extends State<NewsFeedPage> {
             subtitle: 'Top events basés sur likes & vues',
             onSeeAll: () {},
           ),
-          SliverToBoxAdapter(child: _TrendingCarousel(items: trendingEvents)),
+          SliverToBoxAdapter(child: _TrendingCarousel(items: $trendingEvents)),
 
           _SectionHeaderSliver(
             icon: Icons.smart_display,
@@ -147,7 +304,7 @@ class _NewsFeedPageState extends State<NewsFeedPage> {
             subtitle: 'Moments forts et teasers vidéo',
             onSeeAll: () {},
           ),
-          SliverToBoxAdapter(child: _ShortsReel()),
+          SliverToBoxAdapter(child: _ShortsReel(clips: $clips)),
 
           _SectionHeaderSliver(
             icon: Icons.new_releases,
@@ -155,10 +312,22 @@ class _NewsFeedPageState extends State<NewsFeedPage> {
             subtitle: 'Édito EventRush et culture locale',
             onSeeAll: () {},
           ),
+          // SliverList(
+          //   delegate: SliverChildBuilderDelegate(
+              
+          //     (context, index) => _ArticleCard(article: articles[index % articles.length]),
+          //     childCount: 6,
+          //   ),
+          // ),
           SliverList(
             delegate: SliverChildBuilderDelegate(
-              (context, index) => _ArticleCard(article: articles[index % articles.length]),
-              childCount: 6,
+              (context, index) {
+                if (articles.isEmpty) {
+                  return const Center(child: Text("Aucun article disponible"));
+                }
+                return _ArticleCard(article: articles[index % articles.length]);
+              },
+              childCount: articles.isEmpty ? 1 : 6,
             ),
           ),
 
@@ -178,8 +347,17 @@ class _NewsFeedPageState extends State<NewsFeedPage> {
           ),
           SliverList(
             delegate: SliverChildBuilderDelegate(
-              (context, index) => _CommunityCard(post: community[index % community.length]),
-              childCount: 6,
+              (context, index) 
+              // => _CommunityCard(post: community[index % community.length]),
+              // childCount: 6,
+
+              {
+                if (community.isEmpty) {
+                  return const Center(child: Text("Rien au niveau de la communauté"));
+                }
+                return _CommunityCard(post: community[index % community.length]);
+              },
+              childCount: articles.isEmpty ? 1 : 6,
             ),
           ),
 
@@ -425,41 +603,82 @@ class _EventPreviewCard extends StatelessWidget {
 }
 
 class _ShortsReel extends StatelessWidget {
+  final List<_ClipModel> clips;
+
+  const _ShortsReel({super.key, required this.clips});
+  
   @override
   Widget build(BuildContext context) {
     // Faux "shorts" row using PageView for swipeable mini-cards.
     return SizedBox(
       height: 220,
       child: PageView.builder(
-        controller: PageController(viewportFraction: 0.86),
-        itemBuilder: (context, index) {
-          return Padding(
-            padding: const EdgeInsets.only(right: 10),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(20),
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  Image.network('https://picsum.photos/seed/short$index/900/600', fit: BoxFit.cover),
-                  Align(
-                    alignment: Alignment.bottomLeft,
-                    child: Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: const BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.bottomCenter,
-                          end: Alignment.topCenter,
-                          colors: [Colors.black87, Colors.transparent],
+        // controller: PageController(viewportFraction: 0.86),
+        // itemBuilder: (context, index) {
+        //   return Padding(
+        //     padding: const EdgeInsets.only(right: 10),
+        //     child: ClipRRect(
+        //       borderRadius: BorderRadius.circular(20),
+        //       child: Stack(
+        //         fit: StackFit.expand,
+        //         children: [
+        //           Image.network('https://picsum.photos/seed/short$index/900/600', fit: BoxFit.cover),
+        //           Align(
+        //             alignment: Alignment.bottomLeft,
+        //             child: Container(
+        //               padding: const EdgeInsets.all(12),
+        //               decoration: const BoxDecoration(
+        //                 gradient: LinearGradient(
+        //                   begin: Alignment.bottomCenter,
+        //                   end: Alignment.topCenter,
+        //                   colors: [Colors.black87, Colors.transparent],
+        //                 ),
+        //               ),
+        //               child: const Text('Highlight • 0:20', style: TextStyle(color: Colors.white)),
+        //             ),
+        //           )
+        //         ],
+        //       ),
+        //     ),
+        //   );
+        // },
+         controller: PageController(viewportFraction: 0.86),
+          itemCount: clips.length, // ✅ important
+          itemBuilder: (context, index) {
+            final clip = clips[index];
+            return Padding(
+              padding: const EdgeInsets.only(right: 10),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(20),
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    // ✅ utiliser mediaPath du clip
+                    Image.network(clip.mediaPath, fit: BoxFit.cover),
+                    Align(
+                      alignment: Alignment.bottomLeft,
+                      child: Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: const BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.bottomCenter,
+                            end: Alignment.topCenter,
+                            colors: [Colors.black87, Colors.transparent],
+                          ),
+                        ),
+                        child: Text(
+                          clip.description.isNotEmpty 
+                            ? clip.description 
+                            : 'Highlight',
+                          style: const TextStyle(color: Colors.white),
                         ),
                       ),
-                      child: const Text('Highlight • 0:20', style: TextStyle(color: Colors.white)),
-                    ),
-                  )
-                ],
+                    )
+                  ],
+                ),
               ),
-            ),
-          );
-        },
+            );
+          },
       ),
     );
   }
@@ -988,4 +1207,22 @@ class _AgendaItem {
   final String time;
   final String distance;
   _AgendaItem(this.title, this.time, this.distance);
+}
+
+class _ClipModel {
+  final String id;
+  final String description;
+  final String type;
+  final String mediaPath;
+  final String eventId;
+  final UserModel user;
+
+  _ClipModel({
+    required this.id,
+    required this.description,
+    required this.type,
+    required this.mediaPath,
+    required this.eventId,
+    required this.user,
+  });
 }

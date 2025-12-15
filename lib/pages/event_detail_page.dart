@@ -1,7 +1,10 @@
 import 'dart:convert';
 
+import 'package:event_rush_mobile/auth/login_page.dart';
 import 'package:event_rush_mobile/pages/dashboard/paymentwebview_page.dart';
 import 'package:event_rush_mobile/services/api_service/events_service.dart';
+import 'package:event_rush_mobile/services/auth_service.dart';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -112,6 +115,7 @@ class EventDetailPage extends StatefulWidget {
 }
 
 class _EventDetailPageState extends State<EventDetailPage> {
+  final AuthService _authService = AuthService();
   late EventShow event;
   late Stats stats;
   bool isReacting = false;
@@ -273,12 +277,12 @@ class _EventDetailPageState extends State<EventDetailPage> {
                   const SizedBox(height: 12),
 
                   // Carte
-                  _SectionHeader(title: 'Localisation'),
-                  _MapCard(
-                    latitude: event.latitude,
-                    longitude: event.longitude,
-                    title: event.titre,
-                  ),
+                  // _SectionHeader(title: 'Localisation'),
+                  // _MapCard(
+                  //   latitude: event.latitude,
+                  //   longitude: event.longitude,
+                  //   title: event.titre,
+                  // ),
 
                   const SizedBox(height: 12),
 
@@ -617,17 +621,42 @@ class _TicketTileState extends State<_TicketTile> {
   }
 
   Future<void> _payWithFedaPay(BuildContext context, String ticketId) async {
+    // Afficher un loader
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(
+        child: CircularProgressIndicator(color: Color.fromARGB(255, 243, 152, 33)),
+      ),
+    );
     try {
-      // 1. Appel à ton backend pour créer la transaction
+      // 1 - Récupérer le token et le verifier
+      final token = await AuthService.getToken();
+        if (token == null) {
+        // throw Exception("Pas de token");
+          print("token non trouvé : null");
+          Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => LoginPage()),
+        );
+        return; 
+      }
+        print("in launshPayment $ticketId");
+
+      // 2 - Appel à ton backend pour créer la transaction
       final response = await http.post(
         Uri.parse('https://eventrush.onrender.com/api/billet/payer'),
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Authorization': 'Bearer $token',
+          "Accept": "application/json",
+          'Content-Type': 'application/json'},
         body: jsonEncode({
           'ticket_id': ticketId,
           // 'amount': widget.ticket.prix,
           // 'currency': widget.ticket.devise,
         }),
       );
+      print("reponse api : ${response.body}, statut : ${response.statusCode}");
       final body = response.body;
 
       if (response.headers['content-type']?.contains('application/json') != true) {
@@ -635,21 +664,40 @@ class _TicketTileState extends State<_TicketTile> {
         throw Exception("Le serveur n'a pas renvoyé du JSON");
       }                                               
 
+      if (response.statusCode == 200 || response.statusCode == 201) {
       final data = jsonDecode(response.body);
+      final paymentUrl = data["payment_url"];
 
-      if (data['payment_url'] == null) {
-        throw Exception("URL de paiement non trouvée");
+      if (paymentUrl != null) {
+        // ✅ Fermer le loader AVANT d'ouvrir la WebView
+        Navigator.pop(context);
+        await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => PaymentWebView(url: paymentUrl),
+          ),
+        );
+      } else {
+        throw Exception("Pas d'URL de paiement dans la réponse");
       }
+    } else {
+      throw Exception("Erreur backend : ${response.statusCode} - ${response.body}");
+    }
+      // final data = jsonDecode(response.body);
 
-      final url = data['payment_url'];
+      // if (data['payment_url'] == null) {
+      //   throw Exception("URL de paiement non trouvée");
+      // }
 
-      // 2. Ouvrir FedaPay
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => PaymentWebView(url: url),
-        ),
-      );
+      // final url = data['payment_url'];
+
+      // // 2. Ouvrir FedaPay
+      // Navigator.push(
+      //   context,
+      //   MaterialPageRoute(
+      //     builder: (_) => PaymentWebView(url: url),
+      //   ),
+      // );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Erreur paiement : $e')),

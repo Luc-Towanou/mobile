@@ -215,3 +215,57 @@ class FunDateRow extends StatelessWidget {
     );
   }
 }
+
+
+// data : {
+//   id: 129, 
+//   titre: Musique Trad. & Moderne - Bohicon, 
+//   description: Rencontres entre artistes traditionnels et musiciens contemporains., 
+//   lieu: Place publique, Bohicon, 
+//   date_debut: 2025-10-19, 
+//   date_fin: 2025-10-22, 
+//   statut: brouillon, 
+//   latitude: 7.16000000, 
+//   longitude: 2.07000000, 
+//   distance: null, 
+//   affiche_url: https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=1400&q=80, 
+//   photos: [], 
+//   organisateur: {
+//     id: 2, 
+//     nom_entreprise: null, 
+//     logo: null, 
+//     utilisateur: {
+//       id: 2, nom: 
+//       Merveille, 
+//       email: merveille@gmail.com}}, 
+//   tickets: [], 
+//   nombre_types_ticket: 0, 
+//   nombre_places_total: 0, 
+//   nombre_places_restantes: 0, 
+//   tags: [], 
+//   stats: {
+//     vues: 4, 
+//     favoris: 0, 
+//     partages: 0, 
+//     achats: 0}, 
+//   commentaires: [{
+//     id: 435, 
+//     contenu: hello, 
+//     note: null, 
+//     date: 2025-09-24T16:58:10.000000Z, 
+//     utilisateur: {
+//       id: 2, 
+//       nom: Merveille}}, {
+//     id: 441, 
+//     contenu: cc, 
+//     note: null, 
+//     date: 2025-09-24T17:11:10.000000Z, 
+//     utilisateur: {
+//       id: 2, 
+//       nom: Merveille}}, {
+//     id: 443, 
+//     contenu: cc, 
+//     note: null, 
+//     date: 2025-09-24T17:13:08.000000Z,
+//     utilisateur: {
+//       id: 2, no

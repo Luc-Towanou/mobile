@@ -1,156 +1,156 @@
 //base_feed_page.dart
-import 'package:event_rush_mobile/providers/feed_provider.dart';
-import 'package:event_rush_mobile/services/api_service.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../models/feed_item.dart';
-import '../../widgets/bottom_loader.dart';
-import '../../widgets/feed_items/event_card.dart';
-import '../../widgets/feed_items/article_card.dart';
-import '../../widgets/feed_items/section_header.dart';
-import '../../widgets/feed_items/promo_card.dart';
-import '../../widgets/feed_items/organizer_card.dart';
-import '../../widgets/feed_items/story_bar.dart';
-import '../../widgets/skeletons/event_card_skeleton.dart';
-import '../../widgets/skeletons/article_card_skeleton.dart';
-import '../../widgets/skeletons/section_header_skeleton.dart';
-import '../../widgets/error_state.dart';
-import '../../widgets/empty_state.dart';
+// import 'package:event_rush_mobile/providers/feed_provider.dart';
+// import 'package:event_rush_mobile/services/api_service.dart';
+// import 'package:flutter/material.dart';
+// import 'package:flutter_riverpod/flutter_riverpod.dart';
+// import '../../models/feed_item.dart';
+// import '../../widgets/bottom_loader.dart';
+// import '../../widgets/feed_items/event_card.dart';
+// import '../../widgets/feed_items/article_card.dart';
+// import '../../widgets/feed_items/section_header.dart';
+// import '../../widgets/feed_items/promo_card.dart';
+// import '../../widgets/feed_items/organizer_card.dart';
+// import '../../widgets/feed_items/story_bar.dart';
+// import '../../widgets/skeletons/event_card_skeleton.dart';
+// import '../../widgets/skeletons/article_card_skeleton.dart';
+// import '../../widgets/skeletons/section_header_skeleton.dart';
+// import '../../widgets/error_state.dart';
+// import '../../widgets/empty_state.dart';
 
-class BaseFeedPage extends ConsumerStatefulWidget {
-  final StateNotifierProvider<FeedNotifier, FeedState> feedProvider;
+// class BaseFeedPage extends ConsumerStatefulWidget {
+//   final StateNotifierProvider<FeedNotifier, FeedState> feedProvider;
 
-  const BaseFeedPage({
-    super.key,
-    required this.feedProvider, required ApiService apiService, required String pageType,
-  });
+//   const BaseFeedPage({
+//     super.key,
+//     required this.feedProvider, required ApiService apiService, required String pageType,
+//   });
 
-  @override
-  ConsumerState<BaseFeedPage> createState() => _BaseFeedPageState();
-}
+//   @override
+//   ConsumerState<BaseFeedPage> createState() => _BaseFeedPageState();
+// }
 
-class _BaseFeedPageState extends ConsumerState<BaseFeedPage> {
-  final ScrollController _scrollController = ScrollController();
+// class _BaseFeedPageState extends ConsumerState<BaseFeedPage> {
+//   final ScrollController _scrollController = ScrollController();
 
-  @override
-  void initState() {
-    super.initState();
-    _scrollController.addListener(_onScroll);
-    // Charger le flux initial si nécessaire
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final state = ref.read(widget.feedProvider);
-      if (state.items.isEmpty && !state.isLoading) {
-        ref.read(widget.feedProvider.notifier).loadInitialFeed();
-      }
-    });
-  }
+//   @override
+//   void initState() {
+//     super.initState();
+//     _scrollController.addListener(_onScroll);
+//     // Charger le flux initial si nécessaire
+//     WidgetsBinding.instance.addPostFrameCallback((_) {
+//       final state = ref.read(widget.feedProvider);
+//       if (state.items.isEmpty && !state.isLoading) {
+//         ref.read(widget.feedProvider.notifier).loadInitialFeed();
+//       }
+//     });
+//   }
 
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
-  }
+//   @override
+//   void dispose() {
+//     _scrollController.dispose();
+//     super.dispose();
+//   }
 
-  void _onScroll() {
-    if (_scrollController.position.pixels >=
-        _scrollController.position.maxScrollExtent * 0.65) {
-      ref.read(widget.feedProvider.notifier).loadMore();
-    }
-  }
+//   void _onScroll() {
+//     if (_scrollController.position.pixels >=
+//         _scrollController.position.maxScrollExtent * 0.65) {
+//       ref.read(widget.feedProvider.notifier).loadMore();
+//     }
+//   }
 
-  Widget _buildFeedItem(FeedItem item) {
-    switch (item.type) {
-      case 'section_header':
-        return SectionHeader(
-          title: item.payload['title'],
-          subtitle: item.payload['subtitle'],
-        );
-      case 'event':
-        return EventCard(payload: item.payload);
-      case 'article':
-        return ArticleCard(payload: item.payload);
-      case 'promo':
-        return PromoCard(payload: item.payload);
-      case 'organizer':
-        return OrganizerCard(payload: item.payload);
-      case 'story_bar':
-        return StoryBar(payload: item.payload);
-      default:
-        return Container(); // Type non reconnu
-    }
-  }
+//   Widget _buildFeedItem(FeedItem item) {
+//     switch (item.type) {
+//       case 'section_header':
+//         return SectionHeader(
+//           title: item.payload['title'],
+//           subtitle: item.payload['subtitle'],
+//         );
+//       case 'event':
+//         return EventCard(payload: item.payload);
+//       case 'article':
+//         return ArticleCard(payload: item.payload);
+//       case 'promo':
+//         return PromoCard(payload: item.payload);
+//       case 'organizer':
+//         return OrganizerCard(payload: item.payload);
+//       case 'story_bar':
+//         return StoryBar(payload: item.payload);
+//       default:
+//         return Container(); // Type non reconnu
+//     }
+//   }
 
-  Widget _buildSkeleton(int index) {
-    switch (index % 3) {
-      case 0:
-        return const EventCardSkeleton();
-      case 1:
-        return const ArticleCardSkeleton();
-      case 2:
-        return const SectionHeaderSkeleton();
-      default:
-        return const EventCardSkeleton();
-    }
-  }
+//   Widget _buildSkeleton(int index) {
+//     switch (index % 3) {
+//       case 0:
+//         return const EventCardSkeleton();
+//       case 1:
+//         return const ArticleCardSkeleton();
+//       case 2:
+//         return const SectionHeaderSkeleton();
+//       default:
+//         return const EventCardSkeleton();
+//     }
+//   }
 
-  @override
-  Widget build(BuildContext context) {
-    final feedState = ref.watch(widget.feedProvider);
+//   @override
+//   Widget build(BuildContext context) {
+//     final feedState = ref.watch(widget.feedProvider);
 
-    return Scaffold(
-      body: RefreshIndicator(
-        onRefresh: () async {
-          ref.read(widget.feedProvider.notifier).refresh();
-        },
-        child: _buildBody(feedState),
-      ),
-    );
-  }
+//     return Scaffold(
+//       body: RefreshIndicator(
+//         onRefresh: () async {
+//           ref.read(widget.feedProvider.notifier).refresh();
+//         },
+//         child: _buildBody(feedState),
+//       ),
+//     );
+//   }
 
-  Widget _buildBody(FeedState state) {
-    if (state.error != null && state.items.isEmpty) {
-      return ErrorState(
-        message: state.error!,
-        onRetry: () => ref.read(widget.feedProvider.notifier).loadInitialFeed(),
-      );
-    }
+//   Widget _buildBody(FeedState state) {
+//     if (state.error != null && state.items.isEmpty) {
+//       return ErrorState(
+//         message: state.error!,
+//         onRetry: () => ref.read(widget.feedProvider.notifier).loadInitialFeed(),
+//       );
+//     }
 
-    if (state.items.isEmpty && !state.isLoading) {
-      return EmptyState(
-        title: 'Aucun contenu',
-        message: 'Il n\'y a pas encore de contenu à afficher ici.',
-        buttonText: 'Actualiser',
-        onButtonPressed: () => ref.read(widget.feedProvider.notifier).refresh(),
-      );
-    }
+//     if (state.items.isEmpty && !state.isLoading) {
+//       return EmptyState(
+//         title: 'Aucun contenu',
+//         message: 'Il n\'y a pas encore de contenu à afficher ici.',
+//         buttonText: 'Actualiser',
+//         onButtonPressed: () => ref.read(widget.feedProvider.notifier).refresh(),
+//       );
+//     }
 
-    return CustomScrollView(
-      controller: _scrollController,
-      slivers: [
-        SliverList(
-          delegate: SliverChildBuilderDelegate(
-            (context, index) {if (index < state.items.length) {
-                return _buildFeedItem(state.items[index]);
-              } else if (state.hasMore) {
-                return const BottomLoader();
-              } else {
-                return const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 32.0),
-                  child: Center(
-                    child: Text("Vous avez tout vu !"),
-                  ),
-                );
-              }
-            },
-            childCount: state.hasMore
-                ? state.items.length + 1
-                : state.items.length + 1,
-          ),
-        ),
-      ],
-    );
-  }
-}
+//     return CustomScrollView(
+//       controller: _scrollController,
+//       slivers: [
+//         SliverList(
+//           delegate: SliverChildBuilderDelegate(
+//             (context, index) {if (index < state.items.length) {
+//                 return _buildFeedItem(state.items[index]);
+//               } else if (state.hasMore) {
+//                 return const BottomLoader();
+//               } else {
+//                 return const Padding(
+//                   padding: EdgeInsets.symmetric(vertical: 32.0),
+//                   child: Center(
+//                     child: Text("Vous avez tout vu !"),
+//                   ),
+//                 );
+//               }
+//             },
+//             childCount: state.hasMore
+//                 ? state.items.length + 1
+//                 : state.items.length + 1,
+//           ),
+//         ),
+//       ],
+//     );
+//   }
+// }
 
 
 
@@ -322,3 +322,185 @@ class _BaseFeedPageState extends ConsumerState<BaseFeedPage> {
 //     );
 //   }
 // }
+
+
+// base_feed_page.dart
+import 'package:event_rush_mobile/providers/feed_provider.dart';
+import 'package:event_rush_mobile/services/api_service.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+// Importez le nouveau widget
+import '../../widgets/auto_scrolling_carousel.dart'; 
+
+import '../../models/feed_item.dart';
+import '../../widgets/bottom_loader.dart';
+import '../../widgets/feed_items/event_card.dart';
+import '../../widgets/feed_items/article_card.dart';
+import '../../widgets/feed_items/section_header.dart'; 
+import '../../widgets/feed_items/promo_card.dart';
+import '../../widgets/feed_items/organizer_card.dart';
+import '../../widgets/feed_items/story_bar.dart';
+import '../../widgets/skeletons/event_card_skeleton.dart';
+import '../../widgets/skeletons/article_card_skeleton.dart';
+import '../../widgets/skeletons/section_header_skeleton.dart';
+import '../../widgets/error_state.dart';
+import '../../widgets/empty_state.dart';
+
+class BaseFeedPage extends ConsumerStatefulWidget {
+  final StateNotifierProvider<FeedNotifier, FeedState> feedProvider;
+
+  const BaseFeedPage({
+    super.key,
+    required this.feedProvider,
+    required ApiService apiService,
+    required String pageType,
+  });
+
+  @override
+  ConsumerState<BaseFeedPage> createState() => _BaseFeedPageState();
+}
+
+class _BaseFeedPageState extends ConsumerState<BaseFeedPage> {
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final state = ref.read(widget.feedProvider);
+      if (state.items.isEmpty && !state.isLoading) {
+        ref.read(widget.feedProvider.notifier).loadInitialFeed();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollController.hasClients && 
+        _scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent * 0.65) {
+      ref.read(widget.feedProvider.notifier).loadMore();
+    }
+  }
+
+  Widget _buildFeedItem(FeedItem item) {
+    switch (item.type) {
+      case 'section_header':
+        return SectionHeader(
+          title: item.payload['title'],
+          subtitle: item.payload['subtitle'],
+        );
+      
+      // --- NOUVEAU CAS : CARROUSEL D'ÉVÉNEMENTS ---
+      // Utilisez ce type si votre API renvoie une liste d'éléments groupés
+      case 'event_carousel': 
+      // On suppose ici que item.payload['items'] est une liste de Map<String, dynamic>
+        final List listItems = item.payload['items'] ?? [];
+        return AutoScrollingCarousel(
+          height: 300, // Ajustez la hauteur selon la taille de vos cartes
+          items: listItems,
+          itemBuilder: (context, itemData) {
+            // On réutilise votre EventCard existante
+            return SizedBox(
+              width: 280, // Largeur fixe pour chaque carte dans le carrousel
+              child: EventCard(payload: itemData),
+            );
+          },
+        );
+
+      case 'event':
+        return EventCard(payload: item.payload);
+      case 'article':
+        return ArticleCard(payload: item.payload);
+      case 'promo':
+        return PromoCard(payload: item.payload);
+      case 'organizer':
+        return OrganizerCard(payload: item.payload);
+      case 'story_bar':
+        return StoryBar(payload: item.payload);
+      default:
+        // Pour le débogage, il est parfois utile de voir les types non gérés
+        return const SizedBox.shrink(); 
+    }
+  }
+
+  // ... Le reste du code (_buildSkeleton, build, _buildBody) reste inchangé ...
+  
+  Widget _buildSkeleton(int index) {
+    switch (index % 3) {
+      case 0:
+        return const EventCardSkeleton();
+      case 1:
+        return const ArticleCardSkeleton();
+      case 2:
+        return const SectionHeaderSkeleton();
+      default:
+        return const EventCardSkeleton();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final feedState = ref.watch(widget.feedProvider);
+
+    return Scaffold(
+      body: RefreshIndicator(
+        onRefresh: () async {
+          ref.read(widget.feedProvider.notifier).refresh();
+        },
+        child: _buildBody(feedState),
+      ),
+    );
+  }
+
+  Widget _buildBody(FeedState state) {
+    if (state.error != null && state.items.isEmpty) {
+      return ErrorState(
+        message: state.error!,
+        onRetry: () => ref.read(widget.feedProvider.notifier).loadInitialFeed(),
+      );
+    }
+
+    if (state.items.isEmpty && !state.isLoading) {
+      return EmptyState(
+        title: 'Aucun contenu',
+        message: 'Il n\'y a pas encore de contenu à afficher ici.',
+        buttonText: 'Actualiser',
+        onButtonPressed: () => ref.read(widget.feedProvider.notifier).refresh(),
+      );
+    }
+
+    return CustomScrollView(
+      controller: _scrollController,
+      slivers: [
+        SliverList(
+          delegate: SliverChildBuilderDelegate(
+            (context, index) {
+              if (index < state.items.length) {
+                return _buildFeedItem(state.items[index]);
+              } else if (state.hasMore) {
+                return const BottomLoader();
+              } else {
+                return const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 32.0),
+                  child: Center(
+                    child: Text("Vous avez tout vu !"),
+                  ),
+                );
+              }
+            },
+            childCount: state.hasMore
+                ? state.items.length + 1
+                : state.items.length + 1,
+          ),
+        ),
+      ],
+    );
+  }
+}

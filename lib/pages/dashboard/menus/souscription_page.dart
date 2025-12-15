@@ -830,7 +830,7 @@ class _SubscriptionsPageState extends State<SubscriptionsPage> {
           ),
           SizedBox(height: 8),
           Text(
-            'Booste tes capacités 🚀',
+            'Booste tes capacités ',
             style: TextStyle(color: Colors.white70, fontSize: 16),
           ),
         ],
@@ -1020,7 +1020,7 @@ class _SubscriptionsPageState extends State<SubscriptionsPage> {
         case 'premium':
           return Colors.orange; // Orange
         default:
-          return Colors.grey; // fallback
+          return Colors.pink; // fallback
       }
     }
 

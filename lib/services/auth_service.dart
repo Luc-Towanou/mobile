@@ -20,8 +20,10 @@ class AuthService {
     );
 
     if (response.statusCode == 200) {
-      // await storage.write(key: "token", value: data["access_token"]);
-      // await storage.write(key: "role", value: data["role"]); // si besoin
+      final Map<String, dynamic> body = jsonDecode(response.body);
+      final Map<String, dynamic> data = body['data'];
+      await _storage.write(key: "token", value: data["access_token"]);
+      await _storage.write(key: "role", value: data["role"]); // si besoin
       return jsonDecode(response.body);
     } else {
       throw Exception('Erreur : ${response.statusCode} => ${response.body}');
@@ -40,7 +42,9 @@ class AuthService {
     );
 
     if (response.statusCode == 200) {
-      // await storage.write(key: "token", value: data["access_token"]);
+      final Map<String, dynamic> body = jsonDecode(response.body);
+      final Map<String, dynamic> data = body['data'];
+      await _storage.write(key: "token", value: data["access_token"]);
       // await storage.write(key: "role", value: data["role"]); // si besoin
       return jsonDecode(response.body);
     } else {
@@ -84,6 +88,9 @@ class AuthService {
 
   static Future<String?> getToken() async {
     return await _storage.read(key: 'token');
+  }
+  static Future<String?> getRole() async {
+    return await _storage.read(key: 'role');
   }
 
   static Future<void> saveToken(String token) async {
@@ -168,7 +175,7 @@ class AuthService {
     required String otp,
   }) async {
     final response = await http.post(
-      Uri.parse("$base/auth/login/otp"),
+      Uri.parse("$base/auth/verifymailByOtp"),
       headers: {"Content-Type": "application/json"},
       body: jsonEncode({
         "email": email,

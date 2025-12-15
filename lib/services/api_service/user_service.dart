@@ -209,4 +209,27 @@ class ProfileService {
       return [];
     }
   }
+  // 4. Marquer toutes les notifications lues
+  Future<Map<String, dynamic>> MarkAllRead() async {
+    final token = await AuthService.getToken();
+    final url = Uri.parse('$baseUrl/notifications/mark-as-read');
+    final response = await http.post(
+      url,
+      headers: {
+        "Content-Type": "application/json",
+        'Authorization': 'Bearer $token',
+        "Accept": "application/json", 
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> body = jsonDecode(response.body);
+      final Map<String, dynamic> data = body['data'];
+      // await _storage.write(key: "token", value: data["access_token"]);
+      // await storage.write(key: "role", value: data["role"]); // si besoin
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Erreur : ${response.statusCode} => ${response.body}');
+    }
+  }
 }
