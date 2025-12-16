@@ -1,5 +1,8 @@
-// import 'package:flutter/material.dart';
-// import 'package:intl/intl.dart';
+import 'package:event_rush_mobile/models/organizer.dart';
+import 'package:event_rush_mobile/services/api_service/organisateur_service.dart';
+import 'package:event_rush_mobile/widgets/skeletons/organizer_page_skeleton.dart';
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 // class OrganizersPage extends StatefulWidget {
 //   @override
@@ -685,3 +688,222 @@
 //         stats = json['statistics'],
 //         quote = json['quote'];
 // }
+
+
+class OrganizersPage extends StatefulWidget {
+  @override
+  State<OrganizersPage> createState() => _OrganizersPageState();
+}
+
+class _OrganizersPageState extends State<OrganizersPage> {
+  final OrganizersService _service = OrganizersService();
+  final TextEditingController _searchCtrl = TextEditingController();
+
+  OrganizersHubResponse? _data;
+  bool _loading = true;
+  int? _expandedOrganizerId;
+  int? _expandedPostId;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  // Future<void> _load({String? search}) async {
+  //   setState(() => _loading = true);
+  //   _data = await _service.fetchHub(search: search);
+  //   setState(() => _loading = false);
+  // }
+  Future<void> _load({String? search}) async {
+    if (!mounted) return;
+
+    setState(() => _loading = true);
+    try {
+      print(" Chargement des données avec recherche: $search ");
+      _data = await _service.fetchHub(search: search);
+    } catch (e) {
+      print("Erreur API: $e");
+      _data = null;
+    }
+    if (!mounted) return;
+    setState(() => _loading = false);
+  }
+
+
+  void _follow(int id) async {
+    await _service.followOrganizer(id);
+    _load(search: _searchCtrl.text);
+  }
+
+  void _sendComment(int postId, String text) async {
+    if (text.isEmpty) return;
+    await _service.addComment(postId, text);
+    _load(search: _searchCtrl.text);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Organisateurs'),
+        backgroundColor: Colors.deepPurple,
+      ),
+      body: _loading
+          ? OrganizersPageSkeleton() //const Center(child: CircularProgressIndicator())
+          : Column(
+              children: [
+                _searchBar(),
+                Expanded(child: _content()),
+              ],
+            ),
+    );
+  }
+    Widget _searchBar() {
+    return Padding(
+      padding: const EdgeInsets.all(12),
+      child: TextField(
+        controller: _searchCtrl,
+        onSubmitted: (v) => _load(search: v),
+        decoration: InputDecoration(
+          hintText: 'Search an organizer...',
+          prefixIcon: const Icon(Icons.search),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+      ),
+    );
+  }
+
+    Widget _content() {
+      if (_data == null) {
+        return Center(child: Text("Aucune donnée disponible"));
+      }
+    final featured = _data!.featured;
+    final others = _data!.organizers;
+
+    return 
+    // RefreshIndicator(
+    //   onRefresh: () => _load(search: _searchCtrl.text),
+    //   child: ListView(
+    //     children: [
+    //       _organizerCard(featured, featured: true),
+    //       ...others.map((o) => _organizerCard(o)),
+    //     ],
+    //   ),
+    // );
+
+      ListView(
+          children: [
+            _organizerCard(featured, featured: true),
+            ...others.map((o) => _organizerCard(o)).toList(),
+          ],
+        );
+      }
+
+      
+
+  
+    Widget _organizerCard(Organizer o, {bool featured = false}) {
+    final expanded = _expandedOrganizerId == o.id;
+
+    return Card(
+      margin: const EdgeInsets.all(12),
+      child: Column(
+        children: [
+          ListTile(
+            leading: CircleAvatar(
+              backgroundImage: NetworkImage(o.image ?? "https://placehold.co/200x200"),
+            ),
+            title: Text(o.name),
+            subtitle: Text('${o.followers} followers'),
+            trailing: ElevatedButton(
+              onPressed: () => _follow(o.id),
+              child: const Text('Follow'),
+            ),
+            onTap: () {
+              setState(() {
+                _expandedOrganizerId = expanded ? null : o.id;
+              });
+            },
+          ),
+          if (expanded)
+            ...o.posts.map((p) => _postCard(p)).toList(),
+        ],
+      ),
+    );
+  }
+
+  //   Widget _content() {
+  //     if (_data == null) {
+  //       return Center(child: Text("Aucune donnée disponible"));
+  //     }
+  //   final featured = _data!.featured;
+  //   final others = _data!.organizers;
+
+  //   return 
+  // // ListView(
+  // //     children: [
+  // //       _organizerCard(featured, featured: true),
+  // //       ...others.map((o) => _organizerCard(o)).toList(),
+  // //     ],
+  // //   );
+  // // }
+
+  //     RefreshIndicator(
+  //     onRefresh: () => _load(search: _searchCtrl.text),
+  //     child: ListView(
+  //       children: [
+  //         _organizerCard(featured, featured: true),
+  //         ...others.map((o) => _organizerCard(o)),
+  //       ],
+  //     ),
+  //   );
+  // }
+
+
+
+    Widget _postCard(Post p) {
+    final expanded = _expandedPostId == p.id;
+    final TextEditingController ctrl = TextEditingController();
+
+    return Card(
+      margin: const EdgeInsets.all(8),
+      child: Column(
+        children: [
+          ListTile(
+            title: Text(p.title),
+            // subtitle: Text(p.subtitle),
+            onTap: () {
+              setState(() {
+                _expandedPostId = expanded ? null : p.id;
+              });
+            },
+          ),
+          if (expanded) ...[
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: Text(p.content),
+            ),
+            ...p.comments.map((c) => ListTile(
+                  title: Text(c.user),
+                  subtitle: Text(c.text),
+                )),
+            Padding(
+              padding: const EdgeInsets.all(8),
+              child: TextField(
+                controller: ctrl,
+                decoration: InputDecoration(
+                  hintText: 'Write a comment...',
+                  suffixIcon: IconButton(
+                    icon: const Icon(Icons.send),
+                    onPressed: () => _sendComment(p.id, ctrl.text),
+                  ),
+                ),
+              ),
+            )
+          ]
+        ],
+      ),
+    );
+  }
+}

@@ -1,4 +1,4 @@
-package com.example.event_rush_mobile
+package com.luc.mobile
 
 import io.flutter.embedding.android.FlutterActivity
 

@@ -331,7 +331,7 @@ class _ParticipantView extends StatelessWidget {
 
         if (events.isEmpty) {
           return const Center(
-            child: Text("No managed events yet 🚀"),
+            child: Text("No managed events yet "),
           );
         }
 

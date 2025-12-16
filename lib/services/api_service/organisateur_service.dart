@@ -11,7 +11,8 @@ class OrganizersService {
     );
 
     final res = await http.get(uri);
-
+      ('Response status: ${res.statusCode}');
+    print('Response body: ${res.body}');
     if (res.statusCode != 200) {
       throw Exception('Failed to load organizers');
     }

@@ -10,6 +10,7 @@ import 'package:intl/intl.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:palette_generator/palette_generator.dart';
 import 'package:http/http.dart' as http;
+import 'package:share_plus/share_plus.dart';
 // Optionnel: rating bar pour étoiles
 // import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 
@@ -66,7 +67,7 @@ class Organizer {
 
 class Stats {
   final int vues;
-  final int partages;
+  int partages;
   int likes;
   Stats({required this.vues, required this.partages, required this.likes});
 }
@@ -125,15 +126,17 @@ class _EventDetailPageState extends State<EventDetailPage> {
     super.initState();
     event = widget.event;
     stats = widget.event.stats;
-    
-
+     
   }
+  
+
   String _formatDateRange(EventShow e) {
     final f = DateFormat('EEE d MMM yyyy', 'fr_FR');
     final start = f.format(e.start);
     final end = e.end != null ? f.format(e.end!) : null;
     return end == null ? start : '$start — $end';
   }
+
   
 
   
@@ -141,6 +144,7 @@ class _EventDetailPageState extends State<EventDetailPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final sortedComments = [...event.comments]..sort((a, b) => a.date.compareTo(b.date));
     return Scaffold(
       backgroundColor: const Color(0xFFF7F5FB),
       body: CustomScrollView(
@@ -207,7 +211,12 @@ class _EventDetailPageState extends State<EventDetailPage> {
                 icon: const Icon(Icons.share),
                 onPressed: () async {
                   await EventsService.share('event', event.id);
-                  // setState(() => event.stats.partages++);
+                  setState(() => event.stats.partages++);
+                   // ✅ partage natif
+                    Share.share(
+                      'Découvrez cet événement : ${event.titre}\n${event.affiche}',
+                      subject: 'Invitation à un événement',
+                    );
                 },
                 tooltip: 'Partager',
               ),
@@ -288,9 +297,10 @@ class _EventDetailPageState extends State<EventDetailPage> {
 
                   // Commentaires (synthèse + liste)
                   _SectionHeader(title: 'Commentaires'),
-                  _CommentsSummaryCard(summary: event.commentsSummary),
+                  _CommentsSummaryCard(summary: event.commentsSummary, eventId: event.id),
                   const SizedBox(height: 8),
-                  for (final c in event.comments) _CommentTile(comment: c),
+                  // for (final c in event.comments) _CommentTile(comment: c),
+                  for (final c in sortedComments) _CommentTile(comment: c),
 
                   const SizedBox(height: 12),
 
@@ -420,20 +430,46 @@ class _StatsRow extends StatelessWidget {
   Widget _statItem(IconData icon, String label, int value, {Color color = const Color(0xFF3D2C8D)}) {
     return Expanded(
       child: _InfoCard(
-        child: Row(
+        child: 
+        // Row(
+        //   mainAxisAlignment: MainAxisAlignment.center,
+        //   children: [
+        //     Icon(icon, color: color),
+        //     const SizedBox(width: 8),
+        //     Column(
+        //       crossAxisAlignment: CrossAxisAlignment.start,
+        //       children: [
+        //         Text(label, style: const TextStyle(fontSize: 12, color: Color(0xFF6A5CB0))),
+        //         Text('$value', style: const TextStyle(fontWeight: FontWeight.w700)),
+        //       ],
+        //     ),
+        //   ],
+        // ),
+        Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(icon, color: color),
             const SizedBox(width: 8),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(label, style: const TextStyle(fontSize: 12, color: Color(0xFF6A5CB0))),
-                Text('$value', style: const TextStyle(fontWeight: FontWeight.w700)),
-              ],
+            Flexible( // 👈 ajoute Flexible
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: const TextStyle(fontSize: 12, color: Color(0xFF6A5CB0)),
+                    overflow: TextOverflow.ellipsis, // 👈 coupe si trop long
+                  ),
+                  Text(
+                    '$value',
+                    style: const TextStyle(fontWeight: FontWeight.w700),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
             ),
           ],
-        ),
+        )
+
       ),
     );
   }
@@ -482,9 +518,53 @@ class _MapCard extends StatelessWidget {
   }
 }
 
+// class _CommentsSummaryCard extends StatelessWidget {
+//   final CommentsSummary summary;
+//   const _CommentsSummaryCard({Key? key, required this.summary}) : super(key: key);
+
+//   @override
+//   Widget build(BuildContext context) {
+//     final posRatio = summary.total == 0 ? 0.0 : summary.positifs / summary.total;
+//     final negRatio = summary.total == 0 ? 0.0 : summary.negatifs / summary.total;
+
+//     return _InfoCard(
+//       child: Column(
+//         crossAxisAlignment: CrossAxisAlignment.start,
+//         children: [
+//           const Text('Synthèse des avis', style: TextStyle(fontWeight: FontWeight.w700)),
+//           const SizedBox(height: 10),
+//           Row(
+//             children: [
+//               Expanded(
+//                 child: _BarStat(label: 'Positifs', ratio: posRatio, color: Colors.green),
+//               ),
+//               const SizedBox(width: 8),
+//               Expanded(
+//                 child: _BarStat(label: 'Négatifs', ratio: negRatio, color: Colors.red),
+//               ),
+//             ],
+//           ),
+//           const SizedBox(height: 10),
+//           Row(
+//             children: [
+//               const Icon(Icons.star, color: Color(0xFFFFC107)),
+//               const SizedBox(width: 6),
+//               Text('${summary.moyenneEtoiles.toStringAsFixed(1)} / 5'),
+//               const Spacer(),
+//               Text('Total: ${summary.total}'),
+//             ],
+//           ),
+//         ],
+//       ),
+//     );
+//   }
+// }
+
 class _CommentsSummaryCard extends StatelessWidget {
   final CommentsSummary summary;
-  const _CommentsSummaryCard({Key? key, required this.summary}) : super(key: key);
+  final int eventId; // 👈 on passe l'id de l'événement
+
+  const _CommentsSummaryCard({Key? key, required this.summary, required this.eventId}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -499,13 +579,9 @@ class _CommentsSummaryCard extends StatelessWidget {
           const SizedBox(height: 10),
           Row(
             children: [
-              Expanded(
-                child: _BarStat(label: 'Positifs', ratio: posRatio, color: Colors.green),
-              ),
+              Expanded(child: _BarStat(label: 'Positifs', ratio: posRatio, color: Colors.green)),
               const SizedBox(width: 8),
-              Expanded(
-                child: _BarStat(label: 'Négatifs', ratio: negRatio, color: Colors.red),
-              ),
+              Expanded(child: _BarStat(label: 'Négatifs', ratio: negRatio, color: Colors.red)),
             ],
           ),
           const SizedBox(height: 10),
@@ -518,11 +594,105 @@ class _CommentsSummaryCard extends StatelessWidget {
               Text('Total: ${summary.total}'),
             ],
           ),
+          const SizedBox(height: 12),
+          ElevatedButton.icon(
+            onPressed: () => _showCommentDialog(context, eventId),
+            icon: const Icon(Icons.comment),
+            label: const Text("Commenter"),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF3D2C8D),
+              foregroundColor: Colors.white,
+            ),
+          ),
         ],
       ),
     );
   }
+
+  void _showCommentDialog(BuildContext context, int eventId) {
+    final contenuCtrl = TextEditingController();
+    int note = 5;
+
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text("Ajouter un commentaire"),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: contenuCtrl,
+              decoration: const InputDecoration(
+                labelText: "Votre commentaire",
+              ),
+              maxLines: 3,
+            ),
+            const SizedBox(height: 12),
+            DropdownButton<int>(
+              value: note,
+              items: List.generate(5, (i) => i + 1)
+                  .map((n) => DropdownMenuItem(value: n, child: Text("$n étoile(s)")))
+                  .toList(),
+              onChanged: (val) => note = val ?? 5,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text("Annuler")),
+          ElevatedButton(
+            onPressed: () async {
+              await _sendComment(eventId, contenuCtrl.text, note, context);
+              Navigator.pop(context);
+            },
+            child: const Text("Envoyer"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _sendComment(int eventId, String contenu, int note, BuildContext context) async {
+    try {
+      final token = await AuthService.getToken(); // ⚠️ récupère ton token
+      final res = await http.post(
+        Uri.parse("https://eventrush.onrender.com/api/commentaires/event/comment/$eventId"),
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+        },
+        body: jsonEncode({
+          "contenu": contenu,
+          "note": note,
+        }),
+      );
+
+      if (res.statusCode == 201) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Commentaire ajouté avec succès")),
+        );
+        // ✅ Recharger l'événement et ses commentaires
+        final eventsService = EventsService();
+        final updatedEvent = await eventsService.fetchEventById(int.parse(eventId.toString()));
+        // Assure-toi que fetchEvent renvoie EventShow avec comments mis à jour
+        (context as Element).markNeedsBuild(); // force rebuild
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => EventDetailPage(event: updatedEvent)),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Erreur: ${res.body}")),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Erreur: $e")),
+      );
+    }
+  }
 }
+
 
 class _BarStat extends StatelessWidget {
   final String label;

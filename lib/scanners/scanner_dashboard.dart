@@ -91,7 +91,7 @@ class _ScannerDashboardPageState extends State<ScannerDashboardPage> {
               child: Column(
                 children: [
                   Text(
-                    'Bienvenue, ${widget.scanner.nom}! 🚀',
+                    'Bienvenue, ${widget.scanner.nom}! ',
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                   SizedBox(height: 8),

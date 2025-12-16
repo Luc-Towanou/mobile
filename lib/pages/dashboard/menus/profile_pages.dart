@@ -1,5 +1,6 @@
 // profile_pages.dart
 import 'package:event_rush_mobile/models/user.dart';
+import 'package:event_rush_mobile/pages/dashboard/menus/edit_profile_page.dart';
 import 'package:event_rush_mobile/pages/dashboard/menus/notifications_page.dart';
 import 'package:event_rush_mobile/pages/dashboard/menus/souscription_page.dart';
 import 'package:event_rush_mobile/services/api_service/user_service.dart';
@@ -315,32 +316,93 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget _buildPersonalInfoCard(User user) {
-    return _buildGlassCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Row(
-            children: [
-              Icon(Iconsax.user, color: Colors.white70, size: 20),
-              SizedBox(width: 8),
-              Text(
-                'Informations personnelles',
-                style: TextStyle(
-                    color: Colors.white, fontSize: 18, fontWeight: FontWeight.w600),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          _buildInfoRow('Nom complet', user.nom),
-          _buildInfoRow('Email', user.email),
-          _buildInfoRow('Statut Compte', user.souscriptionActive == true  ? "Premium Actif" : "Standard"),
-          _buildInfoRow('Téléphone', 'Inconnu'),
-          _buildInfoRow('Membre depuis', user.createdAt!.toString()),
+  // Widget _buildPersonalInfoCard(User user) {
+  //   return _buildGlassCard(
+  //     child: Column(
+  //       crossAxisAlignment: CrossAxisAlignment.start,
+  //       children: [
+  //         const Row(
+  //           children: [
+  //             Icon(Iconsax.user, color: Colors.white70, size: 20),
+  //             SizedBox(width: 8),
+  //             Text(
+  //               'Informations personnelles',
+  //               style: TextStyle(
+  //                   color: Colors.white, fontSize: 18, fontWeight: FontWeight.w600),
+  //             ),
+  //           ],
+  //         ),
+  //         const SizedBox(height: 16),
+  //         _buildInfoRow('Nom complet', user.nom),
+  //         _buildInfoRow('Email', user.email),
+  //         _buildInfoRow('Statut Compte', user.souscriptionActive == true  ? "Premium Actif" : "Standard"),
+  //         _buildInfoRow('Téléphone', 'Inconnu'),
+  //         _buildInfoRow('Membre depuis', user.createdAt!.toLocal().toString().split(' ')[0]),
 
-          const SizedBox(height: 16),
-          // ... Le reste du bouton modifier reste identique
-          Container(
+  //         const SizedBox(height: 16),
+  //         // ... Le reste du bouton modifier reste identique
+  //         Container(
+  //           width: double.infinity,
+  //           padding: const EdgeInsets.symmetric(vertical: 12),
+  //           decoration: BoxDecoration(
+  //             borderRadius: BorderRadius.circular(12),
+  //             gradient: LinearGradient(
+  //               colors: [
+  //                 Colors.pink.withOpacity(0.6),
+  //                 Colors.purple.withOpacity(0.6),
+  //               ],
+  //             ),
+  //           ),
+  //           child: const Center(
+  //             child: Text(
+  //               'Modifier mes informations',
+  //               style: TextStyle(
+  //                 color: Colors.white,
+  //                 fontWeight: FontWeight.w600,
+  //               ),
+  //             ),
+  //           ),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
+  Widget _buildPersonalInfoCard(User user) {
+  return _buildGlassCard(
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Row(
+          children: [
+            Icon(Iconsax.user, color: Colors.white70, size: 20),
+            SizedBox(width: 8),
+            Text(
+              'Informations personnelles',
+              style: TextStyle(
+                  color: Colors.white, fontSize: 18, fontWeight: FontWeight.w600),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        _buildInfoRow('Nom complet', user.nom),
+        _buildInfoRow('Email', user.email),
+        _buildInfoRow('Statut Compte',
+            user.souscriptionActive == true ? "Premium Actif" : "Standard"),
+        _buildInfoRow('Téléphone', 'Inconnu'),
+        _buildInfoRow(
+            'Membre depuis', user.createdAt!.toLocal().toString().split(' ')[0]),
+
+        const SizedBox(height: 16),
+
+        // ✅ Bouton cliquable
+        InkWell(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const EditProfilePage()),
+            );
+          },
+          child: Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(vertical: 12),
             decoration: BoxDecoration(
@@ -362,10 +424,12 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
             ),
           ),
-        ],
-      ),
-    );
-  }
+        ),
+      ],
+    ),
+  );
+}
+
 
   // Widget _buildPersonalInfoCard() {
   //   return _buildGlassCard(

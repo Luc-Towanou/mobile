@@ -48,7 +48,7 @@ class MyEvent {
       title: json['titre'],
       date: json['date_event'] ?? json['date'],
       location: json['lieu'],
-      image: json['image_url'] ?? "https://picsum.photos/400/200",
+      image: json['affiche'] ?? "https://picsum.photos/400/200",
     );
   }
 }

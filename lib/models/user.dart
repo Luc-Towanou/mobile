@@ -11,7 +11,7 @@ class User {
   final bool emailVerifie;
   final int points;
   final bool? souscriptionActive;
-  final DateFormat? createdAt = DateFormat('dd/MM/yyyy');
+  final DateTime? createdAt ;
 
 
   User({
@@ -25,7 +25,7 @@ class User {
     required this.emailVerifie,
     required this.points,
     this.souscriptionActive,
-    // this.createdAt,
+    this.createdAt,
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
@@ -41,7 +41,7 @@ class User {
       points: json['points']?? 0,
       // Gérer le null et convertir en bool
       souscriptionActive: json['souscription_actived'] ?? false,
-      // createdAt: DateFormat('dd/MM/yyyy') ?? DateFormat('dd/MM/yyyy'),
+      createdAt: DateTime.parse(json["created_at"]),
     );
   }
 }

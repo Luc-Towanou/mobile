@@ -37,30 +37,41 @@
 class Post {
   final int id;
   final String title;
-  final String subtitle;
+  // final String subtitle;
   final String content;
   final String image;
   final DateTime date;
   final int likes;
   final List<Comment> comments;
 
+  // Post.fromJson(Map<String, dynamic> json)
+  //     : id = json['id'],
+  //       title = json['title'],
+  //       // subtitle = json['subtitle'],
+  //       content = json['content'],
+  //       image = json['image'],
+  //       date = DateTime.parse(json['date']),
+  //       likes = json['likes'],
+  //       comments = (json['comments'] as List)
+  //           .map((c) => Comment.fromJson(c))
+  //           .toList();
   Post.fromJson(Map<String, dynamic> json)
-      : id = json['id'],
-        title = json['title'],
-        subtitle = json['subtitle'],
-        content = json['content'],
-        image = json['image'],
-        date = DateTime.parse(json['date']),
-        likes = json['likes'],
-        comments = (json['comments'] as List)
-            .map((c) => Comment.fromJson(c))
-            .toList();
+    : id = json['id'],
+      title = json['title'] ?? '',
+      content = json['content'] ?? '',
+      image = json['image'] ?? '',
+      date = DateTime.parse(json['date']),
+      likes = (json['likes'] ?? 0),
+      comments = (json['comments'] as List? ?? [])
+          .map((c) => Comment.fromJson(c))
+          .toList();
+
 }
 class Organizer {
   final int id;
   final String name;
   final String image;
-  final String description;
+  // final String description;
   final double rating;
   final int eventsCount;
   final int followers;
@@ -70,8 +81,8 @@ class Organizer {
   Organizer.fromJson(Map<String, dynamic> json)
       : id = json['id'],
         name = json['name'],
-        image = json['image'],
-        description = json['description'],
+        image = json['image'] ?? "https://placehold.co/200x200",
+        // description = json['description'],
         rating = (json['rating'] as num).toDouble(),
         eventsCount = json['events_count'],
         followers = json['followers'],

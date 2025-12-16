@@ -25,7 +25,7 @@ class AuthService {
       // final Map<String, dynamic> data = body['data'];
       await _storage.write(key: "token", value: body["access_token"]);
       await _storage.write(key: "role", value: body["role"]); // si besoin
-      await _storage.write(key: "sous_statut", value: body["est_actif"]); // si besoin
+      await _storage.write(key: "sous_statut", value: body["est_actif"].toString()); // si besoin
       return jsonDecode(response.body);
     } else {
       throw Exception('Erreur : ${response.statusCode} => ${response.body}');
@@ -45,8 +45,8 @@ class AuthService {
 
     if (response.statusCode == 200) {
       final Map<String, dynamic> body = jsonDecode(response.body);
-      final Map<String, dynamic> data = body['data'];
-      await _storage.write(key: "token", value: data["access_token"]);
+      // final Map<String, dynamic> data = body['data'];
+      await _storage.write(key: "token", value: body["access_token"]);
       // await storage.write(key: "role", value: data["role"]); // si besoin
       return jsonDecode(response.body);
     } else {
@@ -60,7 +60,10 @@ class AuthService {
       Uri.parse('$baseUrl/me'),
       headers: {'Authorization': 'Bearer $token'},
     );
-    return jsonDecode(response.body);
+    // final body = jsonDecode(response.body);
+    // return jsonDecode(response.body);
+    final Map<String, dynamic> jsonResponse = json.decode(response.body);
+    return jsonResponse['data'];
   }
 
   Future<List<dynamic>> getScannerEvents(String token) async {
@@ -189,5 +192,34 @@ class AuthService {
       "status": response.statusCode,
       "body": jsonDecode(response.body),
     };
+  }
+  Future<Map<String, dynamic>> getScannreEvents(String token) async {
+    final url = Uri.parse("$baseUrl/scanneur/event");
+
+    final response = await http.get(
+      url,
+      headers: {
+        "Authorization": "Bearer $token",
+        "Accept": "application/json",
+      },
+    );
+
+    if (response.statusCode == 200) {
+      // ✅ Succès : on parse le JSON
+      final data = json.decode(response.body);
+      return {
+        "success": true,
+        "events": data["evenement"] ?? [],
+        "total": data["total_event"] ?? 0,
+      };
+    } else {
+      // ❌ Erreur : on renvoie le message
+      final errorData = json.decode(response.body);
+      return {
+        "success": false,
+        "message": errorData["error"] ?? "Erreur inconnue",
+        "status": response.statusCode,
+      };
+    }
   }
 }

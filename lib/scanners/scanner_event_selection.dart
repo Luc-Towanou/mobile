@@ -18,44 +18,44 @@ class EventSelectionPage extends StatefulWidget {
 
 class _EventSelectionPageState extends State<EventSelectionPage> {
   // Données simulées d'événements
-  final List<Event> _events = [
-    Event(
-      id: 'event1',
-      name: 'Afro Beats Night 🎶',
-      date: DateTime.now().add(Duration(days: 1)),
-      location: 'Salle de Concert Central',
-      totalTickets: 500,
-      scannedTickets: 127,
-      imageUrl: 'https://picsum.photos/400/300?random=music',
-    ),
-    Event(
-      id: 'event2',
-      name: 'Festival Tech 2023 💻',
-      date: DateTime.now().add(Duration(days: 3)),
-      location: 'Centre de Convention',
-      totalTickets: 300,
-      scannedTickets: 89,
-      imageUrl: 'https://picsum.photos/400/300?random=tech',
-    ),
-    Event(
-      id: 'event3',
-      name: 'Concert Jazz Lounge 🎷',
-      date: DateTime.now().add(Duration(days: 5)),
-      location: 'Club Jazz Lounge',
-      totalTickets: 150,
-      scannedTickets: 45,
-      imageUrl: 'https://picsum.photos/400/300?random=jazz',
-    ),
-    Event(
-      id: 'event4',
-      name: 'Exposition Art Moderne 🎨',
-      date: DateTime.now().add(Duration(days: 7)),
-      location: 'Galerie Nationale',
-      totalTickets: 200,
-      scannedTickets: 67,
-      imageUrl: 'https://picsum.photos/400/300?random=art',
-    ),
-  ];
+  // final List<Event> _events = [
+  //   Event(
+  //     id: 'event1',
+  //     name: 'Afro Beats Night 🎶',
+  //     date: DateTime.now().add(Duration(days: 1)),
+  //     location: 'Salle de Concert Central',
+  //     totalTickets: 500,
+  //     scannedTickets: 127,
+  //     imageUrl: 'https://picsum.photos/400/300?random=music',
+  //   ),
+  //   Event(
+  //     id: 'event2',
+  //     name: 'Festival Tech 2023 💻',
+  //     date: DateTime.now().add(Duration(days: 3)),
+  //     location: 'Centre de Convention',
+  //     totalTickets: 300,
+  //     scannedTickets: 89,
+  //     imageUrl: 'https://picsum.photos/400/300?random=tech',
+  //   ),
+  //   Event(
+  //     id: 'event3',
+  //     name: 'Concert Jazz Lounge 🎷',
+  //     date: DateTime.now().add(Duration(days: 5)),
+  //     location: 'Club Jazz Lounge',
+  //     totalTickets: 150,
+  //     scannedTickets: 45,
+  //     imageUrl: 'https://picsum.photos/400/300?random=jazz',
+  //   ),
+  //   Event(
+  //     id: 'event4',
+  //     name: 'Exposition Art Moderne 🎨',
+  //     date: DateTime.now().add(Duration(days: 7)),
+  //     location: 'Galerie Nationale',
+  //     totalTickets: 200,
+  //     scannedTickets: 67,
+  //     imageUrl: 'https://picsum.photos/400/300?random=art',
+  //   ),
+  // ];
 
 
   List<Event> get _assignedEvents {
@@ -237,11 +237,12 @@ class _EventSelectionPageState extends State<EventSelectionPage> {
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.deepPurple,
+                        foregroundColor: const Color.fromARGB(255, 250, 24, 178),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      child: Text('Commencer le scan', style: TextStyle(fontSize: 16)),
+                      child: Text('Commencer le scan', style: TextStyle(fontSize: 16), ),
                     ),
                   ),
                 ],

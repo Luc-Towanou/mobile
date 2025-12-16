@@ -117,47 +117,68 @@ class _ScannerLoginPageState extends State<ScannerLoginPage> {
       print("Scanner: $userData");
 
       // 3️⃣ Récupérer les événements du scanner
-      final eventsDataRaw = await authService.getScannerEvents(token);
-      print("Events RAW: $eventsDataRaw");
+      // final eventsDataRaw = await authService.getScannreEvents(token);
+      final result = await authService.getScannreEvents(token);
+      print("Events RAW: $result");
 
       // 🔥 Extraire la vraie liste d’événements (eventsDataRaw[0])
+      // List<dynamic> eventsList = [];
+      // if (eventsDataRaw is List && eventsDataRaw.isNotEmpty) {
+      //   eventsList = List<dynamic>.from(eventsDataRaw[0]);
+      // }
       List<dynamic> eventsList = [];
-      if (eventsDataRaw is List && eventsDataRaw.isNotEmpty) {
-        eventsList = List<dynamic>.from(eventsDataRaw[0]);
-      }
-      print("EventsList: $eventsList");
+        // if (eventsDataRaw is List && eventsDataRaw.isNotEmpty) {
+        //   if (eventsDataRaw[0] is Map) {
+        //     eventsList = List<dynamic>.from(eventsDataRaw);
+        //   } else {
+        //     print("Pas d'événements : ${eventsDataRaw[0]}");
+        //   }
+        // }
+        if (result["success"] == true) {
+          List<dynamic> eventslist = result["events"];
+          int total = result["total"];
+          print("Événements récupérés: $eventslist (total: $total)");
+          // print("EventsList: $events");
+          // print("EventsList total: $total");
 
-      // 4️⃣ Construire l’objet Scanner
-      final scanner = Scanner(
-        id: userData['id'].toString(),
-        // name: userData['nom'], // tu peux mettre un vrai champ name si dispo
-        nom: userData['nom'],
-        email: userData['email'],
-        assignedEvents: List<String>.from(
-          eventsList.map((e) => e['id'].toString()),
-        ),
-      );
+          // 4️⃣ Construire l’objet Scanner
 
-      final events = eventsList.map((e) => Event(
-              id: e['id'].toString(),
-              name: e['titre'],
-              date: DateTime.parse(e['date_debut']),
-              location: e['lieu'],
-              totalTickets: e['nbr_achat'], // ou autre champ
-              scannedTickets: 0, // à calculer si dispo
-              imageUrl: e['affiche'] ?? 'https://picsum.photos/400/300',
-            )).toList();
-
-      // 5️⃣ Navigation vers la page de sélection
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => EventSelectionPage(
-            scanner: scanner,
-            events: events
+          final scanner = Scanner(
+            id: userData['id'].toString(),
+            // name: userData['nom'], // tu peux mettre un vrai champ name si dispo
+            nom: userData['nom'],
+            email: userData['email'],
+            assignedEvents: List<String>.from(
+              eventslist.map((e) => e['id'].toString()),
             ),
-        ),
-      );
+          );
+          print("Scanneur: $scanner");
+
+          final events = eventslist.map((e) => Event(
+                  id: e['id'].toString(),
+                  name: e['titre'],
+                  date: DateTime.parse(e['date_debut']),
+                  location: e['lieu'],
+                  totalTickets: e['nbr_achat'], // ou autre champ
+                  scannedTickets: 0, // à calculer si dispo
+                  imageUrl: e['affiche'] ?? 'https://picsum.photos/400/300',
+                )).toList();
+              print("Events compte: ${events.length}");
+
+          // 5️⃣ Navigation vers la page de sélection
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => EventSelectionPage(
+                scanner: scanner,
+                events: events
+                ),
+            ),
+          );
+        } else {
+          print("Erreur: ${result["message"]} (code: ${result["status"]})");
+        }
+      
 
       
       //  if (_formKey.currentState!.validate()) {
@@ -278,6 +299,14 @@ class _ScannerLoginPageState extends State<ScannerLoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        leading: IconButton(
+            icon: Icon(Icons.keyboard_return_rounded),
+            onPressed: () => Navigator.pushReplacementNamed(context, '/login'),
+            tooltip: 'Retour login user',
+          ),
+        
+      ),
       backgroundColor: Colors.deepPurple[50],
       
       body: SingleChildScrollView(

@@ -64,6 +64,20 @@ class Ticket {
     this.scannedAt,
     required this.scannedBy,
   });
+  factory Ticket.fromJson(Map<String, dynamic> json) {
+    return Ticket(
+      id: json['id'].toString(),
+      eventId: json['event_id'].toString(),
+      ownerName: json['owner_name'] ?? '',
+      type: json['type'] ?? '',
+      price: double.tryParse(json['price'].toString()) ?? 0.0,
+      isScanned: json['is_scanned'] ?? true,
+      scannedAt: json['scanned_at'] != null
+          ? DateTime.parse(json['scanned_at'])
+          : null,
+      scannedBy: json['scanned_by'].toString(),
+    );
+  }
 }
 
 class ScanResult {
